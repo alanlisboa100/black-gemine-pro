@@ -7,6 +7,7 @@ import {chmod600} from "../utils/fs.js";
 
 export const CONFIG_FILE=path.join(CONFIG_DIR,"settings.json");
 export const SECRETS_FILE=path.join(CONFIG_DIR,"secrets.json");
+let secretsCache=null;
 
 function merge(a,b){
   if(Array.isArray(a)||Array.isArray(b))return b??a;
@@ -54,6 +55,17 @@ export function loadConfig(cwd=process.cwd()){
     if(!fresh)continue;
     cfg.providers[name]={...(current||{}),models:structuredClone(fresh.models||[])};
     if(Array.isArray(fresh.freePoolModels))cfg.providers[name].freePoolModels=[...fresh.freePoolModels];
+  }
+  // GOOGLE_KEY_POOL_MIGRATION_8: provider-owned key slot catalog must follow this build.
+  // Older settings.json files may still contain a 4-slot snapshot and must not shrink the runtime pool.
+  const googleFresh=DEFAULT_CONFIG.providers?.google;
+  if(cfg.providers?.google&&googleFresh){
+    cfg.providers.google.apiKeyEnv=googleFresh.apiKeyEnv;
+    cfg.providers.google.apiKeyEnvs=[...(googleFresh.apiKeyEnvs||[])];
+    cfg.providers.google.googleKeyPool={
+      ...(cfg.providers.google.googleKeyPool||{}),
+      maxKeys:Number(googleFresh.googleKeyPool?.maxKeys||googleFresh.apiKeyEnvs?.length||8)
+    };
   }
   const modelExists=(provider,model)=>(cfg.providers?.[provider]?.models||[]).some(x=>x.id===model);
   if(!allowedProviders.has(cfg.provider)||!modelExists(cfg.provider,cfg.model)){
@@ -106,10 +118,10 @@ export function saveConfig(cfg){
   fs.writeFileSync(CONFIG_FILE,JSON.stringify(cfg,null,2)+"\n","utf8");
 }
 export function loadSecrets(){
-  initConfig();return readJson(SECRETS_FILE,{});
+  initConfig();if(secretsCache)return secretsCache;secretsCache=readJson(SECRETS_FILE,{});return secretsCache;
 }
 export function saveSecrets(obj){
-  initConfig();fs.writeFileSync(SECRETS_FILE,JSON.stringify(obj,null,2)+"\n","utf8");chmod600(SECRETS_FILE);
+  initConfig();fs.writeFileSync(SECRETS_FILE,JSON.stringify(obj,null,2)+"\n","utf8");chmod600(SECRETS_FILE);secretsCache={...obj};
 }
 export function setSecret(name,value){
   const s=loadSecrets();if(value)s[name]=value;else delete s[name];saveSecrets(s);

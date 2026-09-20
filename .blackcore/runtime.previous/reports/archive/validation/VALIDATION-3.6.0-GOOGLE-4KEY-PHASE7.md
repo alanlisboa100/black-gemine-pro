@@ -57,7 +57,7 @@ For `google-free-pool`, BLACKCORE tries the available Google credential slots fo
 4. `gemma-4-31b-it`
 5. `gemma-4-26b-a4b-it`
 6. `gemini-3.6-flash`
-7. `gemini-2.5-flash`
+7. `gemini-3.6-flash`
 
 ## Final validation
 

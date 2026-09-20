@@ -1,22 +1,44 @@
 # ============================================================
 # .gitignore do repositório black-gemine-pro
-# Impede que cache, sessões, logs e segredos voltem a ser commitados
+# BLINDAGEM MÁXIMA: Impede vazamento de chaves, credenciais, sessões e caches
 # ============================================================
 
-# --- Segredos e credenciais ---
+# --- Segredos, Chaves e Credenciais ---
 .blackcore/x_credentials.json
 .blackcore/config/
+*.json.key
+*.key
+*.pem
 secrets.json
 .env
 .env.*
-*.pem
-*.key
+*.env
+auth-profiles/
+credentials*
+*token*
+id_rsa*
+*.p12
 
-# --- Dados internos do BLACKCORE que não devem ir pro git ---
+# --- Caches e Dependências ---
 .blackcore/cache/
+node_modules/
+.npm/
+.cache/
+__pycache__/
+*.py[cod]
+
+# --- Sessões, Histórico e Logs ---
 .blackcore/sessions/
 .blackcore/logs/
 .blackcore/checkpoints/
 .blackcore/history
 .blackcore/install-profile
+.blackcore/task-recovery/
+.blackcore/project-memory/
 *.log
+
+# --- Binários pesados e modelos GGUF ---
+*.gguf
+*.bin
+*.pt
+*.onnx

@@ -17,7 +17,7 @@ function resolveModel(cfg,input=""){
     [/gemini.*3[.,]?8.*flash/,"google","gemini-3.8-flash"],
     [/gemini.*3[.,]?7.*flash/,"google","gemini-3.7-flash"],
     [/gemini.*3[.,]?6.*flash/,"google","gemini-3.6-flash"],
-    [/gemini.*2[.,]?5.*flash/,"google","gemini-2.5-flash"],
+    [/gemini.*2[.,]?5.*flash/,"google","gemini-3.6-flash"],
     [/deepseek.*pro|v4[\s-]*pro|modelo[\s-]*pro|^(?:o\s+)?pro$/,"deepseek","deepseek-v4-pro"],
     [/deepseek.*flash|v4[\s-]*flash|modelo[\s-]*flash|^(?:o\s+)?flash$/,"deepseek","deepseek-v4-flash"]
   ];

@@ -9,7 +9,7 @@ export async function runConfigWizard(){
   const cfg=loadConfig();output.write("\nBLACKCORE // CONFIG\n\n");
   const oa=await askSecret("OpenAI API key (Enter to keep current): ");if(oa)setSecret("OPENAI_API_KEY",oa);
   const ds=await askSecret("DeepSeek API key (Enter to keep current): ");if(ds)setSecret("DEEPSEEK_API_KEY",ds);
-  for(const [i,env] of ["GEMINI_API_KEY","GEMINI_API_KEY_2","GEMINI_API_KEY_3","GEMINI_API_KEY_4"].entries()){
+  for(const [i,env] of ["GEMINI_API_KEY","GEMINI_API_KEY_2","GEMINI_API_KEY_3","GEMINI_API_KEY_4","GEMINI_API_KEY_5","GEMINI_API_KEY_6","GEMINI_API_KEY_7","GEMINI_API_KEY_8"].entries()){
     const gemini=await askSecret(`Google AI Studio / Gemini API key ${i+1} (Enter to keep current): `);if(gemini)setSecret(env,gemini);
   }
   const rl=readline.createInterface({input,output});try{

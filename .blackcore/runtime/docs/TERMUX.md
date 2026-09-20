@@ -53,7 +53,7 @@ bash INSTALAR-BLACKCORE.sh --profile full
 
 OpenAI's direct Sol, Terra and Luna catalog is optional too. Configure it with `blackcore login openai` or set `OPENAI_API_KEY`; the key is not stored in a project repository.
 
-Google AI Studio is also optional. Use `blackcore login google 1` through `blackcore login google 4` to save up to four independent key slots (`GEMINI_API_KEY` ... `GEMINI_API_KEY_4`). Google requests can fail over between configured slots while the selected model remains locked; quotas still apply.
+Google AI Studio is also optional. Use `blackcore login google 1` through `blackcore login google 8` to save up to eight independent key slots (`GEMINI_API_KEY` ... `GEMINI_API_KEY_8`). Google requests can fail over between configured slots while the selected model remains locked; quotas still apply.
 
 ## Device APIs
 

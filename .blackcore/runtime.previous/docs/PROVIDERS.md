@@ -70,7 +70,7 @@ Built-in catalog:
 - `gemma-4-31b-it`
 - `gemma-4-26b-a4b-it`
 - `gemini-3.6-flash`
-- `gemini-2.5-flash`
+- `gemini-3.6-flash`
 
 The four-key layer does not change the selected model. It only provides Google-to-Google credential failover. The `google-free-pool` is still the only mode that automatically changes Google models.
 

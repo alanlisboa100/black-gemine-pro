@@ -12,6 +12,11 @@ function headers(apiKey,extra={}){
   const h={"content-type":"application/json","accept":"application/json",...extra};if(apiKey)h.authorization=`Bearer ${apiKey}`;return h;
 }
 function endpoint(base){return base.replace(/\/+$/,"")+"/chat/completions";}
+function bodyRetryAfterMs(text=""){
+  const raw=String(text||"");
+  const m=raw.match(/"retryDelay"\s*:\s*"([0-9]+(?:\.[0-9]+)?)s"/i)||raw.match(/retry\s+in\s+([0-9]+(?:\.[0-9]+)?)s/i);
+  return m?Math.max(0,Number(m[1])*1000):0;
+}
 function errorDetail(text=""){
   const raw=String(text||"").trim();if(!raw)return "request failed";
   try{
@@ -51,7 +56,7 @@ export class OpenAIProvider{
         try{
           const r=await fetch(endpoint(this.pcfg.baseUrl),{method:"POST",headers:headers(apiKey,this.pcfg.headers||{}),body:JSON.stringify(body),signal:ac.signal});
           if(!r.ok){
-            const text=await r.text();const err=new Error(`${this.provider} HTTP ${r.status}: ${errorDetail(text)}`);err.status=r.status;err.responseBody=text;const ra=r.headers.get("retry-after");if(ra){const seconds=Number(ra);err.retryAfterMs=Number.isFinite(seconds)?seconds*1000:Math.max(0,Date.parse(ra)-Date.now());}throw err;
+            const text=await r.text();const err=new Error(`${this.provider} HTTP ${r.status}: ${errorDetail(text)}`);err.status=r.status;err.responseBody=text;const ra=r.headers.get("retry-after");if(ra){const seconds=Number(ra);err.retryAfterMs=Number.isFinite(seconds)?seconds*1000:Math.max(0,Date.parse(ra)-Date.now());}else err.retryAfterMs=bodyRetryAfterMs(text);throw err;
           }
           if(!stream){
             const j=await r.json();const choice=j.choices?.[0]||{};const message=choice.message||{role:"assistant",content:""};if(message.reasoning&&!message.reasoning_content)message.reasoning_content=message.reasoning;return {message,usage:j.usage||{},finishReason:choice.finish_reason,raw:j};

@@ -26,7 +26,7 @@ function modelMatch(cfg,t){
     [/\bgemini[\s-]*3[.,]?8[\s-]*flash\b/,"gemini-3.8-flash","google"],
     [/\bgemini[\s-]*3[.,]?7[\s-]*flash\b/,"gemini-3.7-flash","google"],
     [/\bgemini[\s-]*3[.,]?6[\s-]*flash\b/,"gemini-3.6-flash","google"],
-    [/\bgemini[\s-]*2[.,]?5[\s-]*flash\b/,"gemini-2.5-flash","google"],
+    [/\bgemini[\s-]*2[.,]?5[\s-]*flash\b/,"gemini-3.6-flash","google"],
     [/\b(?:deepseek\s*)?(?:v4\s*)?flash\b|\bmodelo flash\b/,"deepseek-v4-flash","deepseek"],
     [/\bdeepseek\s*(?:v4\s*)?pro\b|\bv4\s*pro\b|\bmodelo\s+pro\b|\b(?:usa|use|bota|coloca|quero|vai de|escolhe|escolha)\s+(?:o\s+)?pro\b/,"deepseek-v4-pro","deepseek"]
     ,[/\b(?:blackcore\s+)?(?:modelo|model)\s+(?:local|offline)\b|\bllama[.\s-]*cpp\b/,"blackcore-local","local"]

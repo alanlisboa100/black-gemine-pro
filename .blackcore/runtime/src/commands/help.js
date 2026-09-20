@@ -32,6 +32,10 @@ GOOGLE MULTI-KEY
   blackcore login google 2    second Google key
   blackcore login google 3    third Google key
   blackcore login google 4    fourth Google key
+  blackcore login google 5    fifth Google key
+  blackcore login google 6    sixth Google key
+  blackcore login google 7    seventh Google key
+  blackcore login google 8    eighth Google key
   blackcore logout google 2   remove one slot without touching the others
 
 OPTIONAL POWER-USER SHORTCUTS

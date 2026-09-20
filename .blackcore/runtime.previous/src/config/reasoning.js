@@ -23,7 +23,7 @@ const DEFINITIONS={
   "gemini-3.6-flash":gemini3Profile("medium"),
   "gemini-3.5-flash-lite":gemini3Profile("minimal"),
   "gemini-3.1-flash-lite":gemini3Profile("minimal"),
-  "gemini-2.5-flash":gemini25Profile({allowNone:true,defaultLevel:"medium"}),
+  "gemini-3.6-flash":gemini25Profile({allowNone:true,defaultLevel:"medium"}),
   "gemma-4-31b-it":gemma4Profile("minimal"),
   "gemma-4-26b-a4b-it":gemma4Profile("minimal")
 };

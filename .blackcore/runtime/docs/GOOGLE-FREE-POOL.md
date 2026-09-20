@@ -11,7 +11,7 @@ Default pool order (Trio Supremo):
 5. `gemini-3.1-flash-lite`
 6. `gemma-4-31b-it`
 7. `gemma-4-26b-a4b-it`
-8. `gemini-2.5-flash`
+8. `gemini-3.6-flash`
 
 `gemini-3.8-flash`, `gemini-3.7-flash` and `gemini-3.6-flash` form the core high-performance trio of the pool. If 3.8 encounters server saturation (HTTP 503) or quota exhaustion (429), it automatically fails over to 3.7 and then 3.6 without losing session state or context.
 
@@ -22,14 +22,18 @@ Gemini models use Google's OpenAI-compatible endpoint. Gemma 4 models use the na
 The pool is a routing policy, not a billing guarantee. Google rate limits are project- and model-specific and can change; check the active quotas and billing tier in Google AI Studio.
 
 
-## Four-key Google pool
+## Eight-key Google pool
 
-BLACKCORE can keep up to four independent Google AI Studio credentials in the global secrets store:
+BLACKCORE can keep up to eight independent Google AI Studio credentials in the global secrets store:
 
 - `GEMINI_API_KEY`
 - `GEMINI_API_KEY_2`
 - `GEMINI_API_KEY_3`
 - `GEMINI_API_KEY_4`
+- `GEMINI_API_KEY_5`
+- `GEMINI_API_KEY_6`
+- `GEMINI_API_KEY_7`
+- `GEMINI_API_KEY_8`
 
 Configure them without placing keys in project files:
 
@@ -38,11 +42,15 @@ blackcore login google 1
 blackcore login google 2
 blackcore login google 3
 blackcore login google 4
+blackcore login google 5
+blackcore login google 6
+blackcore login google 7
+blackcore login google 8
 ```
 
 For a manually selected Google model, BLACKCORE keeps the model locked and fails over only between configured Google key slots on quota/auth/timeout/server availability errors. For `google-free-pool`, it first tries the available key slots for the current model, then advances to the next curated Google model if the current model is unavailable across the key pool. It never crosses into OpenAI or DeepSeek.
 
-Key slots are tried in sequential order from the last successful slot (1→2→3→4, wrapping). The last working slot stays sticky for the next turn so a dead key does not interrupt the conversation: the same messages, tools, and model are retried on the next configured Google credential. Parallel workers still spread across free keys by in-flight count. BLACKCORE does not guess billing tier from a key. Runtime accounting is tracked per key/model for local RPM, TPM and RPD visibility. Quota responses honor `Retry-After` when Google provides it; otherwise BLACKCORE applies bounded per-key/model cooldowns. Slot 1 remains fully backward compatible with the original `GEMINI_API_KEY`.
+Key slots are tried in sequential order from the last successful slot (1→2→3→4→5→6→7→8, wrapping). The last working slot stays sticky for the next turn so a dead key does not interrupt the conversation: the same messages, tools, and model are retried on the next configured Google credential. Parallel workers still spread across free keys by in-flight count. BLACKCORE does not guess billing tier from a key. Runtime accounting is tracked per key/model for local RPM, TPM and RPD visibility. Quota responses honor `Retry-After` when Google provides it, including Google `RetryInfo` delays in the response body. Daily-quota failures cool that key/model until the next Pacific quota day; other quota failures use bounded per-key/model cooldowns. Silent quota/auth/server failures can hand off before any text is shown, while visible partial streams are never replayed on another key. Slot 1 remains fully backward compatible with the original `GEMINI_API_KEY`.
 
 ## Google request tool scope
 

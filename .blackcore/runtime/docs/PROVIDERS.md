@@ -51,13 +51,17 @@ Both expose `off`, `high` and `max` reasoning modes.
 
 Endpoint: `https://generativelanguage.googleapis.com/v1beta/openai`
 
-Credentials: `GEMINI_API_KEY` plus optional slots `GEMINI_API_KEY_2`, `GEMINI_API_KEY_3`, and `GEMINI_API_KEY_4`. Secrets are global to BLACKCORE and are not stored in project repositories.
+Credentials: `GEMINI_API_KEY` plus optional slots `GEMINI_API_KEY_2` through `GEMINI_API_KEY_8`. Secrets are global to BLACKCORE and are not stored in project repositories.
 
 ```bash
 blackcore login google 1
 blackcore login google 2
 blackcore login google 3
 blackcore login google 4
+blackcore login google 5
+blackcore login google 6
+blackcore login google 7
+blackcore login google 8
 ```
 
 Built-in catalog:
@@ -70,7 +74,7 @@ Built-in catalog:
 - `gemma-4-31b-it`
 - `gemma-4-26b-a4b-it`
 - `gemini-3.6-flash`
-- `gemini-2.5-flash`
+- `gemini-3.6-flash`
 
 The four-key layer does not change the selected model. It only provides Google-to-Google credential failover. The `google-free-pool` is still the only mode that automatically changes Google models.
 

@@ -18,7 +18,7 @@ function shortModel(model=""){
     "deepseek-v4-flash":"V4 Flash","deepseek-v4-pro":"V4 Pro",
     "gpt-5.6-sol":"GPT-5.6 Sol","gpt-5.6-terra":"GPT-5.6 Terra","gpt-5.6-luna":"GPT-5.6 Luna",
     "google-free-pool":"Google Supremo Pool (3.8 · 3.7 · 3.6)","gemini-3.8-flash":"Gemini 3.8 Flash","gemini-3.7-flash":"Gemini 3.7 Flash","gemini-3.5-flash-lite":"Gemini 3.5 Flash-Lite","gemini-3.1-flash-lite":"Gemini 3.1 Flash Lite",
-    "gemma-4-31b-it":"Gemma 4 31B","gemma-4-26b-a4b-it":"Gemma 4 26B A4B","gemini-3.6-flash":"Gemini 3.6 Flash","gemini-2.5-flash":"Gemini 2.5 Flash"
+    "gemma-4-31b-it":"Gemma 4 31B","gemma-4-26b-a4b-it":"Gemma 4 26B A4B","gemini-3.6-flash":"Gemini 3.6 Flash","gemini-3.6-flash":"Gemini 2.5 Flash"
   };
   return known[model]||known[raw]||raw.replace(/-/g," ").replace(/\b\w/g,x=>x.toUpperCase());
 }

@@ -29,7 +29,7 @@ function desc(m){
     if(m.id==="gemma-4-31b-it")return"Strong open Gemma 4 model for coding/reasoning; native Gemini API, 256K context.";
     if(m.id==="gemma-4-26b-a4b-it")return"Fast MoE Gemma 4 fallback for high-volume work; native Gemini API, 256K context.";
     if(m.id==="gemini-3.6-flash")return"Strongest curated Gemini Flash here for harder coding and agentic work.";
-    if(m.id==="gemini-2.5-flash")return"Reliable 1M-context fallback with tools, vision and optional thinking.";
+    if(m.id==="gemini-3.6-flash")return"Reliable 1M-context fallback with tools, vision and optional thinking.";
   }
   return m.description||"Model configured in BLACKCORE.";
 }

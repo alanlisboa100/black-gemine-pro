@@ -10,6 +10,11 @@ function nativeBase(pcfg={}){
 }
 function endpoint(pcfg,model){return `${nativeBase(pcfg)}/models/${encodeURIComponent(model)}:generateContent`;}
 function safeJson(value){try{return JSON.parse(String(value||""));}catch{return String(value??"");}}
+function bodyRetryAfterMs(text=""){
+  const raw=String(text||"");
+  const m=raw.match(/"retryDelay"\s*:\s*"([0-9]+(?:\.[0-9]+)?)s"/i)||raw.match(/retry\s+in\s+([0-9]+(?:\.[0-9]+)?)s/i);
+  return m?Math.max(0,Number(m[1])*1000):0;
+}
 function errorDetail(text=""){const raw=String(text||"").trim();if(!raw)return "request failed";try{const j=JSON.parse(raw),item=Array.isArray(j)?j[0]:j,err=item?.error||item;return String(err?.message||err?.status||item?.message||raw).replace(/\s+/g," ").slice(0,1200);}catch{return raw.replace(/\s+/g," ").slice(0,1200);}}
 function toolDeclarations(tools=[]){return tools.map(t=>({name:t.name,description:t.description||"",parameters:googleCompatibleSchema(t.parameters)}));}
 function openAIContentParts(content){
@@ -97,7 +102,7 @@ export async function chatGemmaNative(cfg,provider,model,{messages,tools=[],sign
       const abort=()=>ac.abort(signal?.reason||new Error("aborted"));if(signal){if(signal.aborted)abort();else signal.addEventListener("abort",abort,{once:true});}
       try{
         const r=await fetch(endpoint(pcfg,model),{method:"POST",headers:{"content-type":"application/json","accept":"application/json","x-goog-api-key":apiKey,...(pcfg.nativeHeaders||{})},body:JSON.stringify(body),signal:ac.signal});
-        if(!r.ok){const text=await r.text();const err=new Error(`${provider} HTTP ${r.status}: ${errorDetail(text)}`);err.status=r.status;err.responseBody=text;const ra=r.headers.get("retry-after");if(ra){const seconds=Number(ra);err.retryAfterMs=Number.isFinite(seconds)?seconds*1000:Math.max(0,Date.parse(ra)-Date.now());}throw err;}
+        if(!r.ok){const text=await r.text();const err=new Error(`${provider} HTTP ${r.status}: ${errorDetail(text)}`);err.status=r.status;err.responseBody=text;const ra=r.headers.get("retry-after");if(ra){const seconds=Number(ra);err.retryAfterMs=Number.isFinite(seconds)?seconds*1000:Math.max(0,Date.parse(ra)-Date.now());}else err.retryAfterMs=bodyRetryAfterMs(text);throw err;}
         const json=await r.json(),out=resultOf(json);if(stream&&out.message.reasoning_content)onReasoning?.(out.message.reasoning_content);if(stream&&out.message.content)onText?.(out.message.content);return out;
       }finally{clearTimeout(timer);signal?.removeEventListener("abort",abort);}
     }catch(e){lastErr=e;if(attempt>=max||signal?.aborted||(!retryable(e.status||0)&&e.status))throw e;await sleep(Math.max(backoff(attempt,retryCfg),Number(e.retryAfterMs||0)),signal);}

@@ -1,43 +1,46 @@
-# 🖤 Black-Gemine Pro (BLACKCORE v4.0 Cérebro 2.0)
+# 🖤 Black-Gemine Pro (BLACKCORE Native v3.8.1 + Cérebro 2.0)
 
-> **O Agente de Engenharia Autônomo Definitivo para Termux, Android e Linux.**
+> **O Agente de Engenharia de Software Autônomo e Criativo para Termux, Android e Linux.**
 
-Combinando a inteligência de ponta do **Google Gemini** com a arquitetura de execução autônoma **BLACKCORE** e o novo protocolo **Cérebro 2.0 / Astra GPT-6**, o **Black-Gemine Pro** transforma qualquer dispositivo Android/Termux em um laboratório de desenvolvimento, estúdio multimídia e central de automação inteligente.
+O **Black-Gemine Pro** combina o poder de raciocínio multimodal do **Google Gemini** com o harness autônomo **BLACKCORE** e a camada de cognição profunda **Cérebro 2.0 / Astra GPT-6**.
 
 ---
 
-## ⚡ Principais Capacidades (Cérebro 2.0)
+## ⚡ Novidades desta Versão
 
-1. **🧠 Raciocínio & Aprendizado Contínuo:**
-   - Decomposição profunda de problemas complexos.
-   - Adaptação dinâmica a novas situações sem perder o contexto.
-   - Histórico de aprendizado integrado para evitar repetição de falhas.
+1. **🛡️ Google Supremo Failover Pool (8 Slots Concorrentes):**
+   - Suporte expandido de 4 para **8 chaves de API independentes** (`GEMINI_API_KEY` até `GEMINI_API_KEY_8`).
+   - Rotação instantânea com zero downtime em caso de rate limit (`429`), erro de quota ou sobrecarga de rede.
+   - Streaming resiliente com auto-recuperação (`handoffSafeStreaming`).
 
-2. **🛠️ Execução Autônoma de Ponta a Ponta (Zero-Chute Policy):**
-   - Inspeção obrigatória do estado do terminal antes de qualquer mutação.
-   - Ciclos cirúrgicos de autocorreção guiados por logs reais.
-   - Verificação baseada em evidências técnicas (testes, validação de binários 3D, build e sintaxe).
+2. **🧠 Cérebro 2.0 & Protocolo Zero-Chute:**
+   - Inspeção obrigatória do estado do terminal antes de qualquer modificação de código.
+   - Decomposição profunda de tarefas complexas em DAGs via `task_graph`.
+   - Autocorreção cirúrgica guiada por evidências reais e logs de erro.
 
-3. **📱 Integração Nativa com o Android / Termux:**
-   - Acesso direto às pastas de mídias (`/storage/emulated/0/Music`, `Videos`, `Download`).
-   - Sincronização imediata com players de música e WhatsApp (`termux-media-scan`).
-   - Gerenciamento automático de ativos 3D em `~/Models3D`.
+3. **📱 Integração de Mídia e Sistema Android / Termux:**
+   - Sincronização automática com WhatsApp e tocadores de música via `termux-media-scan`.
+   - Gestão oficial de modelos 3D (`.glb`, `.gltf`, `.obj`) em `~/Models3D`.
+   - Automação completa de workflows locais com proteção rigorosa de dados sensíveis.
 
-4. **🎬 Estúdio Multimídia & Criativo Integrado:**
-   - Ferramentas avançadas para edição de vídeo com corte inteligente, legendas Whisper e color grading.
-   - Provador virtual e editor de fotos/vídeos com proteção de identidade.
-   - Suporte completo a gráficos 3D (`.glb` / `.gltf`) e publicação instantânea na Vercel.
+4. **🔒 Blindagem de Privacidade e Segurança:**
+   - `.gitignore` impenetrável com bloqueio absoluto de tokens, sessões, caches, históricos e credenciais.
+   - Rastreamento limpo e restrito ao código-fonte do agente.
 
 ---
 
 ## 🚀 Como Iniciar
 
-1. Clone o repositório:
+1. Clone o repositório no seu ambiente Termux:
    ```bash
    git clone https://github.com/alanlisboa100/black-gemine-pro.git
    ```
-2. Carregue o harness no seu ambiente Termux ou Linux.
-3. Comece a conversar em linguagem natural para construir, programar, analisar ou automatizar!
+2. Inicialize o runtime:
+   ```bash
+   cd black-gemine-pro
+   # Configuração e inicialização nativa
+   ```
+3. Interaja naturalmente no terminal para construir, analisar, automatizar ou criar!
 
 ---
-*Criado por Alan Lisboa (`@NFTIX2077`) & Google Gemini.*
+*Desenvolvido por Alan Lisboa (`@NFTIX2077`) & Black-Gemine Pro.*

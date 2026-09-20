@@ -5,7 +5,7 @@ import {chatGemmaNative} from "./google-native.js";
 import {googleKeyAcquire,googleKeyFailure,googleKeyMayFailover,googleKeyPreferredSlot,googleKeySuccess} from "./google-keys.js";
 
 const POOL_ID="google-free-pool";
-const DEFAULT_POOL=["gemini-3.8-flash","gemini-3.7-flash","gemini-3.6-flash","gemini-3.5-flash-lite","gemini-3.1-flash-lite","gemma-4-31b-it","gemma-4-26b-a4b-it","gemini-2.5-flash"];
+const DEFAULT_POOL=["gemini-3.8-flash","gemini-3.7-flash","gemini-3.6-flash","gemini-3.5-flash-lite","gemini-3.1-flash-lite","gemma-4-31b-it","gemma-4-26b-a4b-it","gemini-3.6-flash"];
 function isGemma(model=""){return String(model).startsWith("gemma-4-");}
 function errorStatus(e){return Number(e?.status||String(e?.message||"").match(/HTTP\s+(\d{3})/)?.[1]||0);}
 function poolMayAdvance(e){const status=errorStatus(e);return googleKeyMayFailover(e)||status===404;}

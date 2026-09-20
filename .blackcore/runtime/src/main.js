@@ -17,10 +17,10 @@ import {applyNaturalIntent} from "./natural/intent.js";
 import {UI} from "./tui/ui.js";
 import {HELP} from "./commands/help.js";
 
-const GOOGLE_KEY_ENVS=["GEMINI_API_KEY","GEMINI_API_KEY_2","GEMINI_API_KEY_3","GEMINI_API_KEY_4"];
+const GOOGLE_KEY_ENVS=["GEMINI_API_KEY","GEMINI_API_KEY_2","GEMINI_API_KEY_3","GEMINI_API_KEY_4","GEMINI_API_KEY_5","GEMINI_API_KEY_6","GEMINI_API_KEY_7","GEMINI_API_KEY_8"];
 export function credentialSpec(provider,slotArg){
-  const raw=String(provider||"").toLowerCase(),m=raw.match(/^(google|gemini|aistudio|google-ai)(?:[-_]?([1-4]))?$/);
-  if(m){const slot=Number(slotArg||m[2]||1);if(!Number.isInteger(slot)||slot<1||slot>4)throw new Error("Google key slot must be 1, 2, 3 or 4");return {provider:"google",slot,env:GOOGLE_KEY_ENVS[slot-1],label:`Google AI Studio / Gemini key ${slot}`};}
+  const raw=String(provider||"").toLowerCase(),m=raw.match(/^(google|gemini|aistudio|google-ai)(?:[-_]?([1-8]))?$/);
+  if(m){const slot=Number(slotArg||m[2]||1);if(!Number.isInteger(slot)||slot<1||slot>8)throw new Error("Google key slot must be between 1 and 8");return {provider:"google",slot,env:GOOGLE_KEY_ENVS[slot-1],label:`Google AI Studio / Gemini key ${slot}`};}
   const env=({openai:"OPENAI_API_KEY",deepseek:"DEEPSEEK_API_KEY"})[raw]||null;return env?{provider:raw,slot:1,env,label:provider}:null;
 }
 async function login(provider,slot){

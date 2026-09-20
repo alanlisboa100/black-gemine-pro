@@ -5,7 +5,7 @@ import {selectMenu} from "./select-menu.js";
 const PROVIDERS={
   openai:{label:"OpenAI",icon:"✦",description:"Primary BLACKCORE models · GPT-5.6 Sol, Terra and Luna · official Responses API."},
   deepseek:{label:"DeepSeek",icon:"◆",description:"V4 Flash and V4 Pro · economical alternatives for coding and agents."},
-  google:{label:"Google AI Studio",icon:"✧",description:"Curated free models + resilient Google pool · 4-key context handoff + parallel agent leases."},
+  google:{label:"Google AI Studio",icon:"✧",description:"Curated free models + resilient Google pool · 8-key context handoff + parallel agent leases."},
   local:{label:"Local AI",icon:"◇",description:"llama.cpp on your own device · OpenAI-compatible endpoint · no API key required."}
 };
 
@@ -29,7 +29,7 @@ function desc(m){
     if(m.id==="gemma-4-31b-it")return"Strong open Gemma 4 model for coding/reasoning; native Gemini API, 256K context.";
     if(m.id==="gemma-4-26b-a4b-it")return"Fast MoE Gemma 4 fallback for high-volume work; native Gemini API, 256K context.";
     if(m.id==="gemini-3.6-flash")return"Strongest curated Gemini Flash here for harder coding and agentic work.";
-    if(m.id==="gemini-2.5-flash")return"Reliable 1M-context fallback with tools, vision and optional thinking.";
+    if(m.id==="gemini-3.6-flash")return"Reliable 1M-context fallback with tools, vision and optional thinking.";
   }
   return m.description||"Model configured in BLACKCORE.";
 }
@@ -49,7 +49,7 @@ function providerGroups(cfg){
 function providerSubtitle(id){
   if(id==="deepseek")return"DeepSeek API · choose Flash or Pro.";
   if(id==="openai")return"OPENAI_API_KEY · official Responses API with native reasoning levels.";
-  if(id==="google")return"Up to 4 Google AI Studio keys · seamless context handoff · safe parallel workers · per-key cooldown · Free Pool stays inside Google.";
+  if(id==="google")return"Up to 8 Google AI Studio keys · seamless context handoff · safe parallel workers · per-key cooldown · Free Pool stays inside Google.";
   if(id==="local")return"Local GGUF through llama.cpp · keeps cloud providers and keys unchanged.";
   return"Choose a model.";
 }

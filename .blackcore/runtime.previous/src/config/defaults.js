@@ -17,7 +17,7 @@ export const DEFAULT_CONFIG={
     "google/gemini-3.6-flash":"medium",
     "google/gemini-3.5-flash-lite":"minimal",
     "google/gemini-3.1-flash-lite":"minimal",
-    "google/gemini-2.5-flash":"medium",
+    "google/gemini-3.6-flash":"medium",
     "google/gemma-4-31b-it":"minimal",
     "google/gemma-4-26b-a4b-it":"minimal"
     ,"local/blackcore-local":"medium"
@@ -109,7 +109,7 @@ export const DEFAULT_CONFIG={
       googleKeyPool:{enabled:true,maxKeys:4,strategy:"sequential-sticky",handoffSafeStreaming:true,lastSuccessSlot:1,cooldownMs:{quota:60000,auth:600000,server:15000}},
       maxActiveTools:20,
       freeTier:true,
-      freePoolModels:["gemini-3.8-flash","gemini-3.7-flash","gemini-3.6-flash","gemini-3.5-flash-lite","gemini-3.1-flash-lite","gemma-4-31b-it","gemma-4-26b-a4b-it","gemini-2.5-flash"],
+      freePoolModels:["gemini-3.8-flash","gemini-3.7-flash","gemini-3.6-flash","gemini-3.5-flash-lite","gemini-3.1-flash-lite","gemma-4-31b-it","gemma-4-26b-a4b-it","gemini-3.6-flash"],
       models:[
         {id:"google-free-pool",label:"★ Google Supremo Pool (3.8 · 3.7 · 3.6)",context:1048576,maxOutput:65536,vision:true,tools:true,freeTier:true,pool:true,description:"Trio Supremo failover pool (Gemini 3.8 Flash → 3.7 Flash → 3.6 Flash). Resiliente a 503/429 sem travar a sessão."},
         {id:"gemini-3.8-flash",label:"Gemini 3.8 Flash (Google AI Studio)",context:1048576,maxOutput:65536,vision:true,tools:true,computerUse:true,freeTier:true,description:"Latest generation Gemini 3.8 Flash for advanced reasoning, agentic coding, ultra-fast performance and Elite Pool priority."},
@@ -119,7 +119,7 @@ export const DEFAULT_CONFIG={
         {id:"gemma-4-31b-it",label:"Gemma 4 31B IT (Google AI Studio)",context:262144,maxOutput:32768,vision:true,tools:true,freeTier:true,nativeGoogle:true},
         {id:"gemma-4-26b-a4b-it",label:"Gemma 4 26B A4B IT (Google AI Studio)",context:262144,maxOutput:32768,vision:true,tools:true,freeTier:true,nativeGoogle:true},
         {id:"gemini-3.6-flash",label:"Gemini 3.6 Flash (Google AI Studio)",context:1048576,maxOutput:65536,vision:true,tools:true,freeTier:true},
-        {id:"gemini-2.5-flash",label:"Gemini 2.5 Flash (Google AI Studio)",context:1048576,maxOutput:65536,vision:true,tools:true,freeTier:true}
+        {id:"gemini-3.6-flash",label:"Gemini 2.5 Flash (Google AI Studio)",context:1048576,maxOutput:65536,vision:true,tools:true,freeTier:true}
       ]
     },
     local:{

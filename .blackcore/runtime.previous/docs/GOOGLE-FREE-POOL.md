@@ -11,7 +11,7 @@ Default pool order (Trio Supremo):
 5. `gemini-3.1-flash-lite`
 6. `gemma-4-31b-it`
 7. `gemma-4-26b-a4b-it`
-8. `gemini-2.5-flash`
+8. `gemini-3.6-flash`
 
 `gemini-3.8-flash`, `gemini-3.7-flash` and `gemini-3.6-flash` form the core high-performance trio of the pool. If 3.8 encounters server saturation (HTTP 503) or quota exhaustion (429), it automatically fails over to 3.7 and then 3.6 without losing session state or context.
 
