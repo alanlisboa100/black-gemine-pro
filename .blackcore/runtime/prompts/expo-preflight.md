@@ -1,0 +1,1 @@
+Prepare this Expo/EAS project for a reliable Android build. Run project detection and expo doctor, inspect app/eas config, identify dependency or native configuration problems, fix safe issues, and verify the project before any remote EAS build.

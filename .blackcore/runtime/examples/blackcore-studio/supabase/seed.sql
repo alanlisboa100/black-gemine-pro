@@ -1,0 +1,3 @@
+-- O Studio já inclui itens demonstrativos no armazenamento local do navegador.
+-- Dados por usuário devem ser criados depois do login para que auth.uid() e RLS
+-- sejam exercitados exatamente como em produção. Não crie usuários falsos aqui.

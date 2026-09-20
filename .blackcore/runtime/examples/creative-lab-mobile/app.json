@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "BLACKCORE Creative Lab",
+    "slug": "blackcore-creative-lab",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "android": {
+      "package": "io.blackcore.creativelab"
+    }
+  }
+}

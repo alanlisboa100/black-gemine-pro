@@ -1,0 +1,20 @@
+{
+  "name": "blackcore-studio",
+  "version": "3.5.3",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:reset": "supabase db reset",
+    "supabase:lint": "supabase db lint --local",
+    "supabase:test": "supabase test db --local",
+    "supabase:types": "supabase gen types --lang typescript --local"
+  },
+  "devDependencies": {
+    "supabase": "2.113.0"
+  }
+}

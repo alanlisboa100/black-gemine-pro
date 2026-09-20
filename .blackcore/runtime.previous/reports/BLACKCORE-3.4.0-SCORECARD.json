@@ -1,0 +1,39 @@
+{
+  "product": "BLACKCORE Native",
+  "version": "3.4.0",
+  "date": "2026-08-12",
+  "overall": 9.4,
+  "method": "Evidence-weighted technical readiness. Natural-language score is harness-specific and is not a claim of Codex parity.",
+  "gates": {
+    "javascriptSyntaxFiles": 294,
+    "automatedTests": {"passed": 183, "total": 183},
+    "contextualAdversarialCases": {"passed": 254, "total": 254},
+    "colloquialControlCases": {"passed": 38, "total": 38},
+    "toolMatrix": {"passed": 50, "total": 50},
+    "coreNpmKnownVulnerabilities": 0,
+    "studioProductionNpmKnownVulnerabilities": 0,
+    "mobileNpmKnownVulnerabilities": {"moderate": 7, "high": 11, "critical": 0, "total": 18}
+  },
+  "scores": {
+    "naturalUnderstandingHarness": 9.1,
+    "continuity": 9.2,
+    "ambiguitySafety": 9.5,
+    "failureRecovery": 9.2,
+    "startupExperience": 9.6,
+    "coreAgent": 9.7,
+    "terminalAndCodeDisplay": 9.7,
+    "blackcoreStudioPwa": 9.4,
+    "researchAndSources": 9.2,
+    "supabase": 9.1,
+    "androidExpo": 8.8,
+    "deliveryAndDeployment": 8.9
+  },
+  "notExecutedLive": [
+    "Blind human pairwise benchmark against Codex on identical projects",
+    "Paid live-model behavior benchmark",
+    "Chromium visual render and screenshot inspection",
+    "Local Docker/Supabase stack and authenticated remote Supabase project",
+    "APK/EAS build and installation on an Android device",
+    "Production deployment, email, domain or remote database mutation"
+  ]
+}

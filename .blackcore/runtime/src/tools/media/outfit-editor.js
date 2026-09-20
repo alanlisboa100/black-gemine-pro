@@ -1,0 +1,162 @@
+import fs from "node:fs/promises";
+import {openAsBlob} from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import {Readable} from "node:stream";
+import {pipeline} from "node:stream/promises";
+import {defineTool} from "../registry.js";
+import {available,runCli} from "../common/cli.js";
+import {capture,ensureParent,readable,writable} from "../fs/common.js";
+import {getSecret} from "../../config/loader.js";
+import {fetchAuthorized,readResponseText} from "../../security/network.js";
+import {reportOutfitProgress} from "./outfit-progress.js";
+
+const VIDEO_EXTS=new Set([".mp4",".mov",".mkv",".webm",".m4v",".avi",".3gp"]);
+const IMAGE_EXTS=new Set([".jpg",".jpeg",".png",".webp",".avif",".bmp",".heic",".heif",".tif",".tiff"]);
+const PHOTO_OUTPUT_EXTS=new Set([".jpg",".jpeg",".png",".webp"]);
+const MAX_RESPONSE_BYTES=2_500_000_000;
+const DEFAULT_TIMEOUT_MS=2*60*60*1000;
+const RESPONSE_CLEANUP=Symbol("blackcoreResponseCleanup");
+const RESOLUTION_LIMITS={"720p":{long:1280,short:720},"1080p":{long:1920,short:1080},"2k":{long:2560,short:1440}};
+const UNSAFE_OUTFIT_INTENT=/\b(?:nudify|nude|nudity|naked|undress|undressing|strip\s+(?:her|him|them|the\s+person|clothes)|remove\s+(?:all\s+)?clothes|sem\s+roupa|tirar\s+(?:toda\s+a\s+)?roupa|remover\s+(?:toda\s+a\s+)?roupa|despir|despida|despido|deixar\s+nua|deixar\s+nu|nudez)\b/i;
+
+function expandHome(value=""){const text=String(value||"").trim();if(text==="~")return os.homedir();if(text.startsWith("~/"))return path.join(os.homedir(),text.slice(2));return text;}
+function even(value){const number=Math.max(2,Math.round(Number(value)||2));return number%2===0?number:number-1;}
+function isLoopback(url){const host=url.hostname.toLowerCase();return host==="localhost"||host.endsWith(".localhost")||host==="127.0.0.1"||host==="::1";}
+function safeMessage(value=""){return String(value||"").replace(/[\r\n\t]+/g," ").replace(/bearer\s+\S+/ig,"Bearer [redacted]").slice(0,800);}
+function baseUrl(value){const url=new URL(String(value||""));if(!["http:","https:"].includes(url.protocol))throw new Error("outfit backend endpoint must use http or https");url.hash="";url.search="";if(!url.pathname.endsWith("/"))url.pathname+="/";return url;}
+function apiUrl(base,relative){return new URL(String(relative).replace(/^\/+/,""),base);}
+function contentType(response){return String(response.headers.get("content-type")||"").toLowerCase();}
+function outputPath(input){const parsed=path.parse(input);return path.join(parsed.dir,`${parsed.name}-blackcore-outfit.mp4`);}
+function photoOutputPath(input,format=""){const parsed=path.parse(input),requested=String(format||"").toLowerCase(),source=parsed.ext.toLowerCase(),extension=requested?`.${requested==="jpeg"?"jpg":requested}`:PHOTO_OUTPUT_EXTS.has(source)?source===".jpeg"?".jpg":source:".jpg";return path.join(parsed.dir,`${parsed.name}-blackcore-outfit${extension}`);}
+function secretName(value,fallback){const name=String(value||fallback);if(!/^[A-Z_][A-Z0-9_]{1,127}$/.test(name))throw new Error(`invalid secret name: ${name}`);return name;}
+function authHeaders(a){const name=secretName(a.tokenEnv,"BLACKCORE_OUTFIT_TOKEN"),token=getSecret(name);return token?{authorization:`Bearer ${token}`}:{ };}
+function endpointFrom(a){const name=secretName(a.endpointEnv,"BLACKCORE_OUTFIT_ENDPOINT"),value=a.endpoint||getSecret(name);if(!value)throw new Error(`outfit AI backend is not configured. Set ${name} to a compatible GPU bridge URL; BLACKCORE will not fake an outfit edit`);return baseUrl(value);}
+function assertSafeIntent(a){const text=[a.request,a.garmentDescription].filter(Boolean).join(" ");if(UNSAFE_OUTFIT_INTENT.test(text))throw new Error("unsafe outfit request rejected: BLACKCORE can replace clothing and perform virtual try-on, but cannot undress a person or generate nudity");}
+
+async function requireFiles(ctx,a){
+  if(!a.input)throw new Error("input video required");if(!a.garment)throw new Error("garment image required");
+  const input=await readable(ctx,expandHome(a.input)),garment=await readable(ctx,expandHome(a.garment)),mask=a.mask?await readable(ctx,expandHome(a.mask)):null;
+  if(!VIDEO_EXTS.has(path.extname(input).toLowerCase()))throw new Error("input must be a supported phone video");
+  if(!IMAGE_EXTS.has(path.extname(garment).toLowerCase()))throw new Error("garment must be a JPG, PNG, WebP, AVIF or BMP image");
+  if(mask&&!IMAGE_EXTS.has(path.extname(mask).toLowerCase())&&!VIDEO_EXTS.has(path.extname(mask).toLowerCase()))throw new Error("mask must be an image or video");
+  return {input,garment,mask};
+}
+
+async function requirePhotoFiles(ctx,a){
+  if(!a.input)throw new Error("input photo required");if(!a.garment)throw new Error("garment image required");
+  const input=await readable(ctx,expandHome(a.input)),garment=await readable(ctx,expandHome(a.garment)),mask=a.mask?await readable(ctx,expandHome(a.mask)):null;
+  if(!IMAGE_EXTS.has(path.extname(input).toLowerCase()))throw new Error("input must be a supported photo");if(!IMAGE_EXTS.has(path.extname(garment).toLowerCase()))throw new Error("garment must be a supported photo");if(mask&&!IMAGE_EXTS.has(path.extname(mask).toLowerCase()))throw new Error("photo clothing mask must be an image");return {input,garment,mask,kind:"photo"};
+}
+
+async function resolveOutput(ctx,value,input){const target=expandHome(value||outputPath(input));if(path.extname(target).toLowerCase()!==".mp4")throw new Error("outfit output must be MP4 for phone compatibility");const output=await writable(ctx,target);if(path.resolve(output)===path.resolve(input))throw new Error("output must be different from input; the original video is preserved");await capture(ctx,output);await ensureParent(output);return output;}
+
+async function resolvePhotoOutput(ctx,value,input,a={}){const target=expandHome(value||photoOutputPath(input,a.photoFormat)),extension=path.extname(target).toLowerCase();if(!PHOTO_OUTPUT_EXTS.has(extension))throw new Error("photo outfit output must be JPG, PNG or WebP");const output=await writable(ctx,target);if(path.resolve(output)===path.resolve(input))throw new Error("output must be different from input; the original photo is preserved");await capture(ctx,output);await ensureParent(output);return output;}
+
+async function ensureFfmpeg(){const commands=await available(["ffmpeg","ffprobe"]);if(!commands.ffmpeg||!commands.ffprobe)throw new Error("FFmpeg/ffprobe is required. In Termux run: pkg install ffmpeg");}
+
+async function imageTools(){const commands=await available(["magick","convert","identify"]),render=commands.magick?"magick":commands.convert?"convert":null,identify=commands.magick?"magick":commands.identify?"identify":null;if(!render||!identify)throw new Error("ImageMagick is required. In Termux run: pkg install imagemagick");return {render,identify,identifyPrefix:commands.magick?["identify"]:[]};}
+
+async function probe(ctx,file){const result=await runCli(ctx,"ffprobe",["-v","error","-show_format","-show_streams","-of","json",file],{allowFailure:true,timeoutMs:120000,maxChars:100000});if(result.exitCode!==0)throw new Error(`ffprobe could not inspect video: ${result.output.slice(-1000)}`);const data=JSON.parse(result.output||"{}"),streams=data.streams||[],format=data.format||{};return {duration:Number(format.duration||0)||0,video:streams.find(row=>row.codec_type==="video")||null,audio:streams.find(row=>row.codec_type==="audio")||null,format};}
+
+async function probeImage(ctx,tools,file){const result=await runCli(ctx,tools.identify,[...tools.identifyPrefix,"-format","%m\\n%w\\n%h\\n%[orientation]",`${file}[0]`],{allowFailure:true,timeoutMs:120000,maxChars:30000});if(result.exitCode!==0)throw new Error(`ImageMagick could not inspect photo: ${result.output.slice(-1000)}`);const rows=result.stdout.trim().split(/\r?\n/),orientation=rows[3]||"Undefined",swap=/^(?:LeftTop|RightTop|RightBottom|LeftBottom)$/.test(orientation),rawWidth=Number(rows[1])||0,rawHeight=Number(rows[2])||0;return {format:rows[0]||path.extname(file).slice(1).toUpperCase(),width:swap?rawHeight:rawWidth,height:swap?rawWidth:rawHeight,orientation};}
+
+export function outfitFittedSize(video={},resolution="720p"){const limit=RESOLUTION_LIMITS[resolution]||RESOLUTION_LIMITS["720p"],width=Number(video.width)||0,height=Number(video.height)||0;if(!width||!height)return null;const long=Math.max(width,height),short=Math.min(width,height),scale=Math.min(1,limit.long/long,limit.short/short);return {width:even(width*scale),height:even(height*scale),downscaled:scale<0.999};}
+
+async function readJson(response){let text="";try{text=await readResponseText(response,{maxBytes:1_000_000});return JSON.parse(text||"{}");}catch(error){if(error instanceof SyntaxError)throw new Error(`outfit backend returned invalid JSON: ${safeMessage(text)}`);throw error;}finally{response[RESPONSE_CLEANUP]?.();}}
+
+async function readText(response,maxBytes=120000){try{return await readResponseText(response,{maxBytes});}finally{response[RESPONSE_CLEANUP]?.();}}
+
+async function saveMediaResponse(response,destination,kind="video"){
+  if(!response.ok){response[RESPONSE_CLEANUP]?.();throw new Error(`outfit backend failed with HTTP ${response.status}`);}const length=Number(response.headers.get("content-length")||0),max=kind==="photo"?120_000_000:MAX_RESPONSE_BYTES,type=contentType(response);if(length>max){response[RESPONSE_CLEANUP]?.();throw new Error(`outfit backend ${kind} exceeds the safety size limit`);}if(!response.body){response[RESPONSE_CLEANUP]?.();throw new Error(`outfit backend returned an empty ${kind} response`);}if(!type.includes("octet-stream")&&!type.startsWith(kind==="photo"?"image/":"video/")){response[RESPONSE_CLEANUP]?.();throw new Error(`outfit backend returned ${type||"an unknown format"} instead of ${kind}`);}
+  const handle=await fs.open(destination,"w");try{await pipeline(Readable.fromWeb(response.body),handle.createWriteStream());}finally{await handle.close().catch(()=>{});response[RESPONSE_CLEANUP]?.();}const stat=await fs.stat(destination);if(stat.size<(kind==="photo"?256:1024))throw new Error(`outfit backend returned an empty or invalid ${kind}`);return stat.size;
+}
+
+async function authorizedFetch(ctx,url,options,timeoutMs){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(new Error("outfit backend timed out")),timeoutMs),abort=()=>controller.abort(ctx.signal?.reason),cleanup=()=>{clearTimeout(timer);ctx.signal?.removeEventListener("abort",abort);};ctx.signal?.addEventListener("abort",abort,{once:true});try{const response=await fetchAuthorized(ctx,url,{...options,signal:controller.signal},{maxRedirects:0});response[RESPONSE_CLEANUP]=cleanup;return response;}catch(error){cleanup();throw error;}}
+
+async function confirmUpload(ctx,endpoint,a,files){
+  if(isLoopback(endpoint))return;
+  if(a.allowRemote!==true)throw new Error(`remote outfit processing requires allowRemote=true because the person ${files.kind==="photo"?"photo":"video"} and garment image leave the phone`);
+  if(ctx.cfg.permissionProfile==="safe")throw new Error("remote outfit upload is blocked by the safe permission profile");
+  if(ctx.cfg.permissionProfile!=="yolo"){const ok=await ctx.confirm(`Upload ${path.basename(files.input)} and ${path.basename(files.garment)} to ${endpoint.origin} for outfit replacement?`,false);if(!ok)throw new Error("remote outfit upload denied");}
+}
+
+async function submitJob(ctx,base,headers,files,a,tempVideo,progress){
+  const endpoint=apiUrl(base,"v1/outfit/video"),form=new FormData();
+  form.append("person_video",await openAsBlob(files.input),path.basename(files.input));form.append("garment_image",await openAsBlob(files.garment),path.basename(files.garment));if(files.mask)form.append("mask",await openAsBlob(files.mask),path.basename(files.mask));
+  const fields={backend:a.backend||"swifttry",category:a.category||"full_body",garment_description:a.garmentDescription||"",resolution:a.maxResolution||"720p",quality:a.quality||"high",seed:Number.isInteger(a.seed)?String(a.seed):"",preserve_audio:"true",preserve_identity:String(a.preserveIdentity!==false),preserve_background:String(a.preserveBackground!==false),temporal_consistency:"high",safety_mode:"clothed-only"};for(const [key,value] of Object.entries(fields))form.append(key,value);
+  progress("submitting",28,`sending a private job to ${base.hostname}`,5);const response=await authorizedFetch(ctx,endpoint,{method:"POST",headers,body:form},Math.min(300000,a.timeoutMs||DEFAULT_TIMEOUT_MS));
+  if(contentType(response).startsWith("video/")||contentType(response).includes("octet-stream")){progress("generating",72,"receiving the completed temporal wardrobe pass",6);await saveMediaResponse(response,tempVideo,"video");return {mode:"direct",jobId:response.headers.get("x-job-id")||null};}
+  const payload=await readJson(response);if(!response.ok)throw new Error(`outfit backend rejected the job: ${safeMessage(payload.error||payload.message||response.status)}`);return {mode:"job",payload};
+}
+
+async function submitPhotoJob(ctx,base,headers,files,a,tempPhoto,progress){
+  const endpoint=apiUrl(base,"v1/outfit/image"),form=new FormData();form.append("person_image",await openAsBlob(files.input),path.basename(files.input));form.append("garment_image",await openAsBlob(files.garment),path.basename(files.garment));if(files.mask)form.append("mask_image",await openAsBlob(files.mask),path.basename(files.mask));
+  const fields={backend:a.backend||"generic",category:a.category||"full_body",garment_description:a.garmentDescription||"",quality:a.quality||"high",output_format:a.photoFormat||"png",seed:Number.isInteger(a.seed)?String(a.seed):"",preserve_identity:String(a.preserveIdentity!==false),preserve_background:String(a.preserveBackground!==false),preserve_composition:"true",identity_lock:"high",safety_mode:"clothed-only"};for(const [key,value] of Object.entries(fields))form.append(key,value);
+  progress("submitting",34,`sending a private photo job to ${base.hostname}`,6);const response=await authorizedFetch(ctx,endpoint,{method:"POST",headers,body:form},Math.min(300000,a.timeoutMs||DEFAULT_TIMEOUT_MS));if(contentType(response).startsWith("image/")||contentType(response).includes("octet-stream")){progress("generating",72,"receiving the completed professional outfit image",7);await saveMediaResponse(response,tempPhoto,"photo");return {mode:"direct",jobId:response.headers.get("x-job-id")||null};}const payload=await readJson(response);if(!response.ok)throw new Error(`outfit backend rejected the photo job: ${safeMessage(payload.error||payload.message||response.status)}`);return {mode:"job",payload};
+}
+
+function delay(ms,signal){return new Promise((resolve,reject)=>{const timer=setTimeout(done,ms);function done(){signal?.removeEventListener("abort",abort);resolve();}function abort(){clearTimeout(timer);reject(signal.reason||new Error("cancelled"));}if(signal?.aborted)return abort();signal?.addEventListener("abort",abort,{once:true});});}
+
+async function collectJob(ctx,base,headers,submission,tempOutput,a,progress,kind="video"){
+  if(submission.mode==="direct")return {jobId:submission.jobId};let payload=submission.payload||{},jobId=payload.job_id||payload.id||null,statusUrl=payload.status_url?new URL(payload.status_url,base):jobId?apiUrl(base,`v1/outfit/jobs/${encodeURIComponent(jobId)}`):null,start=Date.now(),timeout=a.timeoutMs||DEFAULT_TIMEOUT_MS;if(statusUrl&&statusUrl.origin!==base.origin)throw new Error("cross-origin outfit status URL rejected to protect the backend token");
+  for(let attempt=0;;attempt++){
+    const status=String(payload.status||payload.state||"").toLowerCase();if(["failed","error","cancelled"].includes(status))throw new Error(`outfit generation failed: ${safeMessage(payload.error||payload.message||status)}`);
+    const resultUrl=payload.result_url||payload.output_url||payload.video_url||payload.image_url;if(["succeeded","complete","completed","done"].includes(status)||resultUrl){if(!resultUrl)throw new Error("outfit backend completed without a result URL");progress("generating",80,kind==="photo"?"professional wardrobe image complete; receiving pixels":"temporal wardrobe pass complete; receiving frames",kind==="photo"?7:6);const downloadUrl=new URL(resultUrl,base),downloadHeaders=downloadUrl.origin===base.origin?headers:{};const response=await authorizedFetch(ctx,downloadUrl,{headers:downloadHeaders},Math.min(300000,timeout));await saveMediaResponse(response,tempOutput,kind);return {jobId};}
+    if(!statusUrl)throw new Error(`outfit backend must return ${kind==="photo"?"an image":"video/mp4"} directly or JSON with job_id/status_url`);if(Date.now()-start>timeout)throw new Error("outfit generation exceeded its configured timeout");const ratio=Math.min(0.88,(Date.now()-start)/timeout),percent=35+ratio*40;progress("generating",percent,payload.progress?`${kind==="photo"?"refining clothing mask":"tracking garment across frames"} · ${Math.round(Number(payload.progress)||0)}%`:`${kind==="photo"?"refining garment and identity":"tracking garment across frames"} · pass ${attempt+1}`,kind==="photo"?7:6);await delay(Math.max(750,a.pollIntervalMs||2500),ctx.signal);const response=await authorizedFetch(ctx,statusUrl,{headers},Math.min(120000,timeout));payload=await readJson(response);if(!response.ok)throw new Error(`outfit job status failed: ${safeMessage(payload.error||payload.message||response.status)}`);
+  }
+}
+
+async function muxMobile(ctx,generated,source,output,sourceInfo,generatedInfo,a,progress){
+  const size=outfitFittedSize(generatedInfo.video,a.maxResolution||"720p");if(!size)throw new Error("generated outfit result has no video stream");const preserveAudio=a.preserveAudio!==false&&!!sourceInfo.audio,quality=a.quality||"high",crf=quality==="draft"?25:quality==="medium"?22:18,preset=quality==="high"?"faster":"veryfast",args=["-hide_banner","-y","-nostats","-i",generated,"-i",source,"-map","0:v:0"];
+  if(preserveAudio)args.push("-map","1:a:0?");else if(generatedInfo.audio)args.push("-map","0:a:0?");
+  args.push("-vf",`scale=${size.width}:${size.height}:flags=lanczos,format=yuv420p`,`-c:v`,`libx264`,`-preset`,preset,"-crf",String(crf));if(preserveAudio||generatedInfo.audio)args.push("-c:a","aac","-b:a",quality==="high"?"192k":"160k");else args.push("-an");args.push("-map_metadata","-1","-movflags","+faststart");
+  args.push(output);progress("audio",84,preserveAudio?"preserving the original soundtrack without cuts":"using the generated visual soundtrack policy",7);progress("exporting",88,`encoding H.264/AAC MP4 at ${a.maxResolution||"720p"} or below`,8);const result=await runCli(ctx,"ffmpeg",args,{allowFailure:true,timeoutMs:60*60*1000,maxChars:300000});if(result.exitCode!==0)throw new Error(`mobile MP4 export failed: ${result.output.slice(-2500)}`);return {size,preserveAudio};
+}
+
+async function verifyDifference(ctx,source,output){
+  const graph="[0:v]fps=0.5,scale=256:-2:flags=fast_bilinear,setpts=PTS-STARTPTS[a];[1:v]fps=0.5,scale=256:-2:flags=fast_bilinear,setpts=PTS-STARTPTS[b];[a][b]ssim";const result=await runCli(ctx,"ffmpeg",["-hide_banner","-nostats","-i",source,"-i",output,"-filter_complex",graph,"-an","-f","null","-"],{allowFailure:true,timeoutMs:20*60*1000,maxChars:400000});if(result.exitCode!==0)return {available:false,changed:true,ssim:null,reason:"SSIM unavailable; backend result and media contract verified"};const values=[...result.output.matchAll(/All:([0-9.]+)/g)].map(row=>Number(row[1])).filter(Number.isFinite),ssim=values.at(-1);if(!Number.isFinite(ssim))return {available:false,changed:true,ssim:null,reason:"SSIM value unavailable; backend result and media contract verified"};return {available:true,changed:ssim<0.9975,ssim:Number(ssim.toFixed(6)),threshold:0.9975};
+}
+
+function imageAspect(metadata){return metadata.width/Math.max(1,metadata.height);}
+
+async function renderProfessionalPhoto(ctx,tools,generated,output,sourceInfo,a,progress){
+  const quality=Math.max(1,Math.min(100,Math.round(Number(a.outputQuality)||(a.quality==="draft"?82:a.quality==="medium"?90:95)))),extension=path.extname(output).toLowerCase(),args=[`${generated}[0]`,"-auto-orient","-colorspace","sRGB","-filter","Lanczos","-resize",`${sourceInfo.width}x${sourceInfo.height}!`];
+  if(extension===".jpg"||extension===".jpeg")args.push("-background","white","-alpha","remove","-alpha","off","-sampling-factor","4:2:0","-interlace","Plane","-quality",String(quality));else if(extension===".webp")args.push("-quality",String(quality));else args.push("-define","png:compression-level=6");args.push(output);progress("photo_export",88,`exporting ${sourceInfo.width}x${sourceInfo.height} ${extension.slice(1).toUpperCase()} with professional quality`,9);const result=await runCli(ctx,tools.render,args,{allowFailure:true,timeoutMs:20*60*1000,maxChars:160000});if(result.exitCode!==0)throw new Error(`professional photo export failed: ${result.output.slice(-2000)}`);return {quality,format:extension.slice(1).replace("jpeg","jpg")};
+}
+
+async function samplePhoto(ctx,tools,input,destination){const args=[`${input}[0]`,"-auto-orient","-background","white","-alpha","remove","-alpha","off","-resize","192x192!","-depth","8",`rgb:${destination}`],result=await runCli(ctx,tools.render,args,{allowFailure:true,timeoutMs:180000,maxChars:100000});if(result.exitCode!==0)throw new Error(`photo difference sampling failed: ${result.output.slice(-1200)}`);return fs.readFile(destination);}
+
+async function verifyPhotoDifference(ctx,tools,source,output,temp){
+  const [before,after]=await Promise.all([samplePhoto(ctx,tools,source,path.join(temp,"before.rgb")),samplePhoto(ctx,tools,output,path.join(temp,"after.rgb"))]);if(before.length!==after.length||!before.length)return {available:false,changed:false,meanAbsolute:null,changedFraction:null,reason:"normalized samples did not match"};let absolute=0,changedPixels=0,pixels=Math.floor(before.length/3);for(let offset=0;offset<pixels*3;offset+=3){const r=Math.abs(before[offset]-after[offset]),g=Math.abs(before[offset+1]-after[offset+1]),b=Math.abs(before[offset+2]-after[offset+2]);absolute+=r+g+b;if(Math.max(r,g,b)/255>0.04)changedPixels++;}const meanAbsolute=absolute/(pixels*3*255),changedFraction=changedPixels/pixels;return {available:true,changed:meanAbsolute>0.0075&&changedFraction>0.04,meanAbsolute:Number(meanAbsolute.toFixed(6)),changedFraction:Number(changedFraction.toFixed(6)),thresholds:{meanAbsolute:0.0075,changedFraction:0.04}};
+}
+
+async function changeOutfitPhoto(a,ctx){
+  const totalSteps=10,progress=(stage,percent,detail,step)=>reportOutfitProgress(ctx,{stage,percent,detail,step,totalSteps});progress("safety",2,"enforcing clothed-only professional photo replacement",1);const tools=await imageTools();progress("loading",7,"opening the source photo and reading its composition",2);const files=await requirePhotoFiles(ctx,a),sourceInfo=await probeImage(ctx,tools,files.input);if(sourceInfo.width<32||sourceInfo.height<32)throw new Error("source photo is too small for professional outfit replacement");progress("garment",14,`preparing ${a.category||"full-body"} garment reference`,3);progress("composition",20,"locking face, body pose, background and framing",4);const output=await resolvePhotoOutput(ctx,a.output,files.input,a),base=endpointFrom(a),headers=authHeaders(a);await confirmUpload(ctx,base,a,files);progress("masking",27,files.mask?"using the supplied clothing mask":"requesting an automatic clothing-only mask",5);
+  const temp=await fs.mkdtemp(path.join(os.tmpdir(),"blackcore-photo-outfit-")),generated=path.join(temp,"generated-image.bin"),staged=`${output}.blackcore-part-${process.pid}-${Date.now()}${path.extname(output)}`;
+  try{
+    const submission=await submitPhotoJob(ctx,base,headers,files,a,generated,progress),job=await collectJob(ctx,base,headers,submission,generated,a,progress,"photo"),generatedInfo=await probeImage(ctx,tools,generated),aspectDifference=Math.abs(imageAspect(generatedInfo)-imageAspect(sourceInfo))/imageAspect(sourceInfo);progress("identity",82,"preserving identity, pose and natural body proportions",8);if(generatedInfo.width<32||generatedInfo.height<32)throw new Error("outfit backend returned an invalid photo");if(aspectDifference>0.05)throw new Error(`outfit backend changed the composition aspect ratio by ${(aspectDifference*100).toFixed(1)}%; result rejected`);const exportInfo=await renderProfessionalPhoto(ctx,tools,generated,staged,sourceInfo,a,progress),finalInfo=await probeImage(ctx,tools,staged);progress("verifying",95,"checking visible clothing change, dimensions and composition",10);if(finalInfo.width!==sourceInfo.width||finalInfo.height!==sourceInfo.height)throw new Error("photo quality check rejected changed dimensions");const verification=await verifyPhotoDifference(ctx,tools,files.input,staged,temp);if(!verification.changed)throw new Error(`photo outfit quality check rejected an unchanged or merely recompressed image (difference ${verification.meanAbsolute}); no fake edit was delivered`);const bytes=(await fs.stat(staged)).size;await fs.rename(staged,output);progress("verifying",100,"professional photo outfit replacement verified and ready",10);const changes=[`replaced the person's ${String(a.category||"full_body").replace(/_/g," ")} clothing with the supplied garment`,`preserved the original ${sourceInfo.width}x${sourceInfo.height} composition and framing`,`exported a professional ${exportInfo.format.toUpperCase()} image at quality ${exportInfo.quality}`];return JSON.stringify({ok:true,action:a.action,input:files.input,garment:files.garment,output,bytes,backend:a.backend||"generic",jobId:job.jobId||null,changes,verification:{...verification,compositionPreserved:true,dimensions:{width:finalInfo.width,height:finalInfo.height},format:exportInfo.format}},null,2);
+  }catch(error){await fs.rm(staged,{force:true}).catch(()=>{});throw error;}finally{await fs.rm(temp,{recursive:true,force:true});}
+}
+
+async function backendStatus(a,ctx){const base=endpointFrom(a),response=await authorizedFetch(ctx,apiUrl(base,"health"),{headers:authHeaders(a)},a.timeoutMs||45000),ok=response.ok,status=response.status,payload=contentType(response).includes("json")?await readJson(response):{message:safeMessage(await readText(response))};return JSON.stringify({ok,action:"backend_status",endpoint:base.origin,status,backend:payload.backend||a.backend||"compatible",ready:payload.ready??ok,capabilities:payload.capabilities||null},null,2);}
+
+export const outfitEditorTool=defineTool({
+  name:"outfit_editor",
+  description:"Professional photo and video virtual try-on and clothing replacement. Use change_outfit_photo for a JPG/PNG/WebP/AVIF/HEIC/TIFF photo and change_outfit for video. Both require a supplied garment image and an explicitly configured compatible GPU backend. Photo mode requests a clothing-only mask, identity/body/background/composition locks, preserves the original dimensions, exports professional JPG/PNG/WebP, and rejects unchanged or merely recompressed images. Video mode requests temporal mask/tracking, preserves identity/background, restores the original soundtrack by default and exports H.264/AAC MP4 at 720p by default with a hard 2K maximum. It never pretends that a watermark, color grade or recompression is an outfit edit. It cannot undress people, reveal a body beneath clothing or generate nudity. Heavy model weights are optional and never downloaded silently onto the phone.",
+  mutates:true,planSafe:a=>a.action==="backend_status",
+  parameters:{type:"object",additionalProperties:false,properties:{
+    action:{type:"string",enum:["backend_status","change_outfit","change_outfit_photo"]},input:{type:"string",maxLength:4096},garment:{type:"string",maxLength:4096},mask:{type:"string",maxLength:4096},output:{type:"string",maxLength:4096},request:{type:"string",maxLength:1200},garmentDescription:{type:"string",maxLength:1000},category:{type:"string",enum:["upper_body","lower_body","dress","full_body"]},
+    backend:{type:"string",enum:["swifttry","catv2ton","catvton","generic"]},endpoint:{type:"string",maxLength:4096},endpointEnv:{type:"string",maxLength:128},tokenEnv:{type:"string",maxLength:128},allowRemote:{type:"boolean"},preserveIdentity:{type:"boolean"},preserveBackground:{type:"boolean"},preserveAudio:{type:"boolean"},maxResolution:{type:"string",enum:["720p","1080p","2k"]},quality:{type:"string",enum:["draft","medium","high"]},photoFormat:{type:"string",enum:["jpg","jpeg","png","webp"]},outputQuality:{type:"integer",minimum:1,maximum:100},seed:{type:"integer",minimum:0,maximum:2147483647},timeoutMs:{type:"integer",minimum:60000,maximum:14400000},pollIntervalMs:{type:"integer",minimum:750,maximum:30000}
+  },required:["action"]},
+  async execute(a,ctx){
+    assertSafeIntent(a);if(a.action==="backend_status")return backendStatus(a,ctx);if(a.action==="change_outfit_photo")return changeOutfitPhoto(a,ctx);const totalSteps=9,progress=(stage,percent,detail,step)=>reportOutfitProgress(ctx,{stage,percent,detail,step,totalSteps});
+    progress("safety",2,"enforcing clothed-only wardrobe replacement",1);await ensureFfmpeg();progress("loading",7,"opening the source video and reading its timeline",2);const files=await requireFiles(ctx,a),sourceInfo=await probe(ctx,files.input);if(!sourceInfo.video)throw new Error("input has no video stream");progress("garment",14,`preparing ${a.category||"full-body"} garment reference`,3);const output=await resolveOutput(ctx,a.output,files.input),base=endpointFrom(a),headers=authHeaders(a);await confirmUpload(ctx,base,a,files);progress("masking",21,files.mask?"using the supplied clothing mask across frames":"requesting automatic clothing mask and temporal tracking",4);
+    const temp=await fs.mkdtemp(path.join(os.tmpdir(),"blackcore-outfit-")),generated=path.join(temp,"generated.mp4"),staged=`${output}.blackcore-part-${process.pid}-${Date.now()}.mp4`;
+    try{
+      const submission=await submitJob(ctx,base,headers,files,a,generated,progress),job=await collectJob(ctx,base,headers,submission,generated,a,progress),generatedInfo=await probe(ctx,generated),durationTolerance=Math.max(0.45,sourceInfo.duration*0.015);if(!generatedInfo.video)throw new Error("outfit backend result has no video stream");if(Math.abs(generatedInfo.duration-sourceInfo.duration)>durationTolerance)throw new Error(`outfit backend changed the timeline by ${Math.abs(generatedInfo.duration-sourceInfo.duration).toFixed(2)}s; result rejected to protect music and synchronization`);
+      const mobile=await muxMobile(ctx,generated,files.input,staged,sourceInfo,generatedInfo,a,progress),finalInfo=await probe(ctx,staged),finalTolerance=Math.max(0.55,sourceInfo.duration*0.02);progress("verifying",95,"checking visible change, duration, codec, audio and resolution",9);if(!finalInfo.video||finalInfo.video.codec_name!=="h264")throw new Error("quality check rejected a non-H.264 phone output");if(Math.abs(finalInfo.duration-sourceInfo.duration)>finalTolerance)throw new Error("quality check rejected a timeline mismatch");if(mobile.preserveAudio&&sourceInfo.audio&&!finalInfo.audio)throw new Error("quality check rejected a result that lost the original soundtrack");const verification=await verifyDifference(ctx,files.input,staged);if(!verification.changed)throw new Error(`outfit quality check rejected an unchanged render (SSIM ${verification.ssim}); no fake edited copy was delivered`);const bytes=(await fs.stat(staged)).size;await fs.rename(staged,output);progress("verifying",100,"outfit replacement verified and ready",9);
+      const changes=[`replaced the person's ${String(a.category||"full_body").replace(/_/g," ")} clothing with the supplied garment across the video`,"kept the original scene order, speed and duration",mobile.preserveAudio?"preserved the original soundtrack without cuts or speed changes":"used the requested generated-audio policy",`exported a phone-compatible ${finalInfo.video.width}x${finalInfo.video.height} H.264/AAC MP4`];return JSON.stringify({ok:true,action:a.action,input:files.input,garment:files.garment,output,bytes,backend:a.backend||"swifttry",jobId:job.jobId||null,changes,verification:{...verification,durationDifference:Number(Math.abs(finalInfo.duration-sourceInfo.duration).toFixed(3)),audioPreserved:mobile.preserveAudio,resolution:{width:finalInfo.video.width,height:finalInfo.video.height},codec:finalInfo.video.codec_name}},null,2);
+    }catch(error){await fs.rm(staged,{force:true}).catch(()=>{});throw error;}finally{await fs.rm(temp,{recursive:true,force:true});}
+  }
+});

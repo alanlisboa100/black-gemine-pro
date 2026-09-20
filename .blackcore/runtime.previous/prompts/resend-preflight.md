@@ -1,0 +1,1 @@
+Prepare transactional email through Resend without sending a message. Verify only the presence of credential names, run the Resend diagnostic and inspect domain status. Confirm sender-domain readiness and explain DNS blockers. Do not send email, schedule email or change a domain unless the user explicitly authorizes the exact action and recipients.

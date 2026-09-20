@@ -1,0 +1,25 @@
+================================================================================
+🖤 BLACKCORE NATIVE v3.8.0 - DISTRIBUIÇÃO COMPLETA E PORTÁTIL PARA TERMUX/LINUX
+================================================================================
+
+COMO INSTALAR:
+1. Abra o terminal Termux ou Linux.
+2. Descompacte este pacote:
+     unzip BLACKCORE-v3.8.0-COMPLETE-TERMUX.zip -d blackcore-install
+     cd blackcore-install/BLACKCORE-v3.8.0-COMPLETE
+3. Execute o instalador automático:
+     bash install.sh
+   ou com o perfil desejado:
+     bash install.sh --profile full
+
+COMO INICIAR:
+  blackcore
+
+PRINCIPAIS CAPACIDADES:
+- 🚀 Trio Supremo Google Free Pool (Gemini 3.8 / 3.7 / 3.6 / 3.5 com failover resiliente)
+- 🕷️ Web Scraper Distribuído Avançado com parsing Markdown
+- 📱 Android ADB & Device Controller (logcat, screencap, input tap/swipe)
+- 🎬 Estúdio de Vídeo, Edição Regional de Fotos e Troca de Roupa (Outfit Studio)
+- ⚡ Sistema de Animação TUI Braille ultra-fluído e 250 turns sem cortes
+
+================================================================================

@@ -1,0 +1,16 @@
+{
+  "name": "blackcore-termux-memory",
+  "version": "3.7.20",
+  "description": "Memória autônoma de aprendizado contínuo e histórico persistente do BLACKCORE no Termux.",
+  "storage": "sqlite-fts5 + json",
+  "paths": {
+    "state": "~/.blackcore/state/memory.json",
+    "sqlite": "~/.blackcore/state/memory.sqlite"
+  },
+  "capabilities": [
+    "Aprendizado contínuo de tarefas e padrões bem-sucedidos",
+    "Indexação full-text search (FTS5) com BM25",
+    "Preservação de histórico entre sessões no Termux",
+    "Recuperação de contexto e padrões recorrentes"
+  ]
+}

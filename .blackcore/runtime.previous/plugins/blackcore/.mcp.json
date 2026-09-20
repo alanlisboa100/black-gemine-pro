@@ -1,0 +1,6 @@
+{
+  "blackcore": {
+    "command": "node",
+    "args": ["./server/index.mjs", "--stdio"]
+  }
+}

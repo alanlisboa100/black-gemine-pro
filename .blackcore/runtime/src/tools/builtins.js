@@ -1,0 +1,72 @@
+import {readTool} from "./fs/read.js";
+import {writeTool} from "./fs/write.js";
+import {editTool} from "./fs/edit.js";
+import {patchTool} from "./fs/patch.js";
+import {patchSetTool} from "./fs/patch-set.js";
+import {listTool} from "./fs/list.js";
+import {statTool} from "./fs/stat.js";
+import {transactionTool} from "./fs/transaction.js";
+import {jsonEditTool} from "./fs/json-edit.js";
+import {mkdirTool,copyTool,moveTool,deleteTool} from "./fs/mutate.js";
+import {findTool} from "./search/find.js";
+import {grepTool} from "./search/grep.js";
+import {repoMapTool} from "./search/repo-map.js";
+import {bashTool} from "./shell/bash.js";
+import {processStartTool,processPollTool,processListTool,processKillTool} from "./shell/process.js";
+import {shellSessionTool} from "./shell/session-tool.js";
+import {gitTool} from "./git/git.js";
+import {githubTool} from "./git/github.js";
+import {worktreeTool} from "./git/worktree.js";
+import {webFetchTool} from "./web/fetch.js";
+import {webScraperTool} from "./web/scraper.js";
+import {webSearchTool,webResearchTool} from "./web/search.js";
+import {newsResearchTool,credibilityCheckTool} from "./web/investigate.js";
+import {downloadTool} from "./web/download.js";
+import {packageTool} from "./package/package.js";
+import {projectDetectTool} from "./package/project.js";
+import {vercelTool} from "./deploy/vercel.js";
+import {netlifyTool} from "./deploy/netlify.js";
+import {supabaseTool} from "./deploy/supabase.js";
+import {resendTool} from "./deploy/resend.js";
+import {expoTool,easTool} from "./deploy/expo.js";
+import {gradleTool} from "./deploy/android.js";
+import {todoTool} from "./task/todo.js";
+import {taskGraphTool} from "./task/graph.js";
+import {systemInfoTool} from "./system/info.js";
+import {envNamesTool,sensitiveFileCheckTool} from "./system/env.js";
+import {memoryTool} from "./task/memory.js";
+import {ollamaTool} from "./local/ollama.js";
+import {verifyTool} from "./verify/verify.js";
+import {deployPreflightTool} from "./deploy/preflight.js";
+import {toolOutputTool} from "./output/tool.js";
+import {httpRequestTool} from "./http/request.js";
+import {archiveTool} from "./archive/archive.js";
+import {portTool} from "./network/port.js";
+import {fileHashTool} from "./fs/hash.js";
+import {agentControlTool} from "./agent/control.js";
+import {browserTool} from "./browser/browser.js";
+import {sqliteTool} from "./database/sqlite.js";
+import {scanTool} from "./scan/scan.js";
+import {documentTool} from "./document/document.js";
+import {codeIntelTool} from "./code-intel/code-intel.js";
+import {documentReaderTool} from "./document-reader/document-reader.js";
+import {mediaTool} from "./media/media.js";
+import {videoEditorTool} from "./media/video-editor.js";
+import {photoEditorTool} from "./media/photo-editor.js";
+import {outfitEditorTool} from "./media/outfit-editor.js";
+import {securityScanTool} from "./security-scan/security-scan.js";
+import {apiLabTool} from "./api-lab/api-lab.js";
+import {androidDeviceTool} from "./android/device.js";
+import {postgresTool} from "./database/postgres.js";
+import {ecosystemTool} from "./package/ecosystem.js";
+import {containerTool} from "./container/container.js";
+import {knowledgeIndexTool} from "./knowledge/index.js";
+import {auditReportTool} from "./audit/audit.js";
+
+export const BUILTIN_TOOLS=[
+  readTool,writeTool,editTool,patchTool,patchSetTool,jsonEditTool,transactionTool,listTool,statTool,mkdirTool,copyTool,moveTool,deleteTool,
+  findTool,grepTool,repoMapTool,bashTool,shellSessionTool,processStartTool,processPollTool,processListTool,processKillTool,
+  gitTool,githubTool,worktreeTool,webSearchTool,webResearchTool,newsResearchTool,credibilityCheckTool,webFetchTool,webScraperTool,downloadTool,scanTool,documentTool,documentReaderTool,mediaTool,videoEditorTool,photoEditorTool,outfitEditorTool,securityScanTool,auditReportTool,apiLabTool,codeIntelTool,knowledgeIndexTool,packageTool,ecosystemTool,projectDetectTool,containerTool,vercelTool,netlifyTool,supabaseTool,resendTool,expoTool,easTool,gradleTool,androidDeviceTool,systemInfoTool,envNamesTool,sensitiveFileCheckTool,todoTool,taskGraphTool,memoryTool,ollamaTool,verifyTool,deployPreflightTool,toolOutputTool,httpRequestTool,archiveTool,portTool,fileHashTool,browserTool,sqliteTool,postgresTool,agentControlTool
+];
+export const PLAN_ALLOWED=new Set(["read","ls","stat","find","grep","repo_map","git","worktree","web_search","web_research","news_research","credibility_check","web_fetch","web_scraper","scan","document_reader","security_scan","code_intel","knowledge_index","project_detect","system_info","env_names","sensitive_path_check","process_poll","process_list","todo","task_graph","file_hash","port_check","browser","sqlite","postgres","android_device","container","agent_control"]);
+export function registerBuiltins(registry){for(const t of BUILTIN_TOOLS)registry.register(t,{group:"builtin"});return registry;}

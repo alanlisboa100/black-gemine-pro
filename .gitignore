@@ -1,0 +1,22 @@
+# ============================================================
+# .gitignore do repositório black-gemine-pro
+# Impede que cache, sessões, logs e segredos voltem a ser commitados
+# ============================================================
+
+# --- Segredos e credenciais ---
+.blackcore/x_credentials.json
+.blackcore/config/
+secrets.json
+.env
+.env.*
+*.pem
+*.key
+
+# --- Dados internos do BLACKCORE que não devem ir pro git ---
+.blackcore/cache/
+.blackcore/sessions/
+.blackcore/logs/
+.blackcore/checkpoints/
+.blackcore/history
+.blackcore/install-profile
+*.log

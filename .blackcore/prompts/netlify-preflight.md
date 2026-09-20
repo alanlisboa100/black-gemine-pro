@@ -1,0 +1,1 @@
+Prepare this project for Netlify without publishing it. Detect the framework, package manager, build command and `netlify.toml`; verify required environment-variable names without reading secrets; run `deploy_preflight` for Netlify and a dry build. Fix safe local problems, then report the evidence and any external blocker. Do not deploy until the user explicitly asks.

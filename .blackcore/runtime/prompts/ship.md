@@ -1,0 +1,1 @@
+Prepare this project to ship. Detect the stack, run appropriate lint/typecheck/tests/build, fix release-blocking problems, inspect Git diff, and summarize what is ready versus what still requires credentials or explicit publication approval.

@@ -1,0 +1,18 @@
+# BLACKCORE Project Context
+
+## Project goal
+Describe the product and what success looks like.
+
+## Architecture
+List important modules, services, entry points, and constraints.
+
+## Commands
+- install:
+- test:
+- lint:
+- build:
+- run:
+
+## Rules
+- Preserve existing behavior unless the task asks otherwise.
+- Add project-specific constraints here.

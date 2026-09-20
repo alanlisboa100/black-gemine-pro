@@ -1,0 +1,32 @@
+{
+  "name": "blackcore",
+  "version": "0.1.0",
+  "description": "Create, inspect, search and edit isolated software projects with BLACKCORE.",
+  "repository": "https://github.com/alanlisboa100/Blackcore2.0-Codex",
+  "license": "MIT",
+  "keywords": [
+    "coding",
+    "projects",
+    "agent",
+    "mcp",
+    "termux"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "BLACKCORE",
+    "shortDescription": "Build and edit isolated code projects",
+    "longDescription": "BLACKCORE gives ChatGPT and Codex focused project tools for creating, inspecting, searching and editing files inside isolated project workspaces.",
+    "developerName": "BLACKCORE",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use BLACKCORE to create a small web project for my idea.",
+      "Use BLACKCORE to inspect this project and make a focused code change.",
+      "Use BLACKCORE to search the project for the source of this bug."
+    ],
+    "brandColor": "#111111"
+  }
+}

@@ -1,0 +1,9 @@
+import net from "node:net";
+import {defineTool} from "../registry.js";
+
+function check(host,port,timeoutMs,signal){return new Promise((resolve,reject)=>{const s=net.createConnection({host,port});let done=false;const finish=v=>{if(done)return;done=true;clearTimeout(timer);signal?.removeEventListener("abort",abort);s.destroy();resolve(v);};const abort=()=>{s.destroy();reject(signal?.reason||new Error("aborted"));};const timer=setTimeout(()=>finish(false),timeoutMs);s.once("connect",()=>finish(true));s.once("error",()=>finish(false));signal?.addEventListener("abort",abort,{once:true});});}
+export const portTool=defineTool({
+  name:"port_check",description:"Check or wait for a TCP port, useful for local development servers.",readOnly:true,parallelSafe:true,
+  parameters:{type:"object",properties:{host:{type:"string"},port:{type:"integer",minimum:1,maximum:65535},waitMs:{type:"integer",minimum:0,maximum:300000},intervalMs:{type:"integer",minimum:50,maximum:10000}},required:["port"],additionalProperties:false},
+  async execute(a,ctx){const host=a.host||"127.0.0.1";if(!["127.0.0.1","localhost","::1"].includes(host)&&ctx.cfg.permissionProfile==="safe")throw new Error("safe profile only permits local port checks");const until=Date.now()+(a.waitMs||0),interval=a.intervalMs||500;do{if(await check(host,a.port,Math.min(1500,interval),ctx.signal))return JSON.stringify({open:true,host,port:a.port,waitedMs:Math.max(0,(a.waitMs||0)-(until-Date.now()))});if(Date.now()>=until)break;await new Promise((r,j)=>{let done=false;const abort=()=>{if(done)return;done=true;clearTimeout(t);j(ctx.signal.reason||new Error("aborted"));};const t=setTimeout(()=>{if(done)return;done=true;ctx.signal?.removeEventListener("abort",abort);r();},interval);ctx.signal?.addEventListener("abort",abort,{once:true});});}while(true);return JSON.stringify({open:false,host,port:a.port});}
+});

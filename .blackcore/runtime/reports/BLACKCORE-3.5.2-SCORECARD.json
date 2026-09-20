@@ -1,0 +1,42 @@
+{
+  "product": "BLACKCORE Native",
+  "version": "3.5.2",
+  "date": "2026-08-12",
+  "verdict": "controlled-pilot",
+  "overallAuditScore": 80,
+  "scores": {
+    "core": 9.8,
+    "fixedTermuxViewport": 9.7,
+    "creativeLab": 9.6,
+    "nativeAudit": 9.7,
+    "studio": 9.6,
+    "mobileFixture": 7.2
+  },
+  "gates": {
+    "syntax": {"passed": 303, "total": 303},
+    "tests": {"passed": 208, "total": 208},
+    "contextualEvals": {"passed": 254, "total": 254},
+    "naturalCorpus": {"passed": 38, "total": 38},
+    "toolMatrix": {"passed": 50, "total": 50},
+    "mcpProtocol": "2026-07-28"
+  },
+  "productionDependencyAudit": {
+    "core": {"total": 0},
+    "studio": {"total": 0},
+    "mobileFixture": {"critical": 0, "high": 23, "moderate": 7, "low": 0, "total": 30}
+  },
+  "fixedViewport": {
+    "minimumColumns": 30,
+    "minimumRows": 14,
+    "headerRows": 4,
+    "composerRows": 3,
+    "termuxSimulation": "54x28",
+    "resizeSimulation": "48x22"
+  },
+  "boundaries": [
+    "No physical Termux/Android device was connected.",
+    "No Chromium, Playwright or physical GPU visual inspection was available.",
+    "No paid provider, production deployment, real Supabase sync or signed APK was exercised.",
+    "The 30 npm alerts are isolated to the Expo/React Native demonstration fixture."
+  ]
+}

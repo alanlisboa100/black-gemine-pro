@@ -1,0 +1,30 @@
+{
+  "product": "BLACKCORE Native",
+  "version": "3.5.0",
+  "date": "2026-08-12",
+  "verdict": "approved-local-controlled-pilot",
+  "scores": {
+    "core": 9.8,
+    "nativeAudit": 9.6,
+    "termuxInterface": 9.5,
+    "studio": 9.6,
+    "mobileFixture": 7.2
+  },
+  "gates": {
+    "syntax": {"passed": 299, "total": 299},
+    "tests": {"passed": 197, "total": 197},
+    "contextualEvals": {"passed": 254, "total": 254},
+    "naturalCorpus": {"passed": 38, "total": 38},
+    "toolMatrix": {"passed": 50, "total": 50}
+  },
+  "productionDependencyAudit": {
+    "core": {"total": 0},
+    "studio": {"total": 0},
+    "mobileFixture": {"critical": 0, "high": 23, "moderate": 7, "low": 0, "total": 30}
+  },
+  "boundaries": [
+    "No paid provider, production deploy, external pentest, signed APK or physical Android device was exercised.",
+    "Secret-looking values in regression fixtures remain visible only as redacted manual-review locations.",
+    "Mobile dependency fixes proposed by npm would move direct Expo/React Native lines incompatibly and were not applied automatically."
+  ]
+}

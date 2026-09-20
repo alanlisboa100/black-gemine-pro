@@ -1,0 +1,19 @@
+{
+  "name": "blackcore-plugin-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MCP adapter for BLACKCORE projects, prepared for ChatGPT/Codex plugin development",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node ./index.mjs --http",
+    "stdio": "node ./index.mjs --stdio",
+    "test": "node --test ./test/*.test.mjs",
+    "check": "node --check ./index.mjs && node --check ./workspace.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/node": "^2.0.0",
+    "@modelcontextprotocol/server": "^2.0.0",
+    "zod": "^4.0.0"
+  }
+}

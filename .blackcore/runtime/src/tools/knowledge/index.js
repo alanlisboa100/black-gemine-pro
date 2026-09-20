@@ -1,0 +1,14 @@
+import fs from "node:fs/promises";
+import path from "node:path";
+import {defineTool} from "../registry.js";
+import {readable,writable,capture,ensureParent} from "../fs/common.js";
+import {walk,readText,writeTextAtomic} from "../../utils/fs.js";
+
+const TEXT=/\.(?:md|mdx|txt|json|ya?ml|toml|html?|css|[cm]?[jt]sx?|py|go|rs|java|kt|kts|sql|sh)$/i;
+function terms(s){return [...new Set(String(s).toLowerCase().match(/[\p{L}\p{N}_-]{2,}/gu)||[])];}
+function chunks(text,size=1800,overlap=200){const out=[];for(let at=0;at<text.length;at+=Math.max(1,size-overlap))out.push(text.slice(at,at+size));return out;}
+export const knowledgeIndexTool=defineTool({
+  name:"knowledge_index",description:"Build and query a private local lexical project index for code/document retrieval. No repository content leaves the machine and no embedding service is required.",parallelSafe:false,planSafe:a=>a.action==="search",
+  parameters:{type:"object",properties:{action:{type:"string",enum:["build","search","stats"]},path:{type:"string"},indexPath:{type:"string"},query:{type:"string",maxLength:10000},maxFiles:{type:"integer",minimum:1,maximum:20000},maxFileBytes:{type:"integer",minimum:1000,maximum:2000000},chunkChars:{type:"integer",minimum:400,maximum:10000},limit:{type:"integer",minimum:1,maximum:100}},required:["action"],additionalProperties:false},
+  async execute(a,ctx){const indexFile=a.indexPath||path.join(".blackcore","index","project.json");if(a.action==="build"){const root=await readable(ctx,a.path||"."),out=await writable(ctx,indexFile);await capture(ctx,out);await ensureParent(out);const files=(await walk(root,{maxFiles:a.maxFiles||5000})).filter(f=>TEXT.test(f)),records=[];for(const file of files){let text;try{text=await readText(file,a.maxFileBytes||700000);}catch{continue;}for(const [i,content] of chunks(text,a.chunkChars||1800).entries())records.push({path:path.relative(ctx.cwd,file),chunk:i,text:content});}const data={version:1,createdAt:new Date().toISOString(),root:path.relative(ctx.cwd,root)||".",files:files.length,chunks:records.length,records};await writeTextAtomic(out,JSON.stringify(data));return JSON.stringify({ok:true,path:path.relative(ctx.cwd,out),files:data.files,chunks:data.chunks,bytes:Buffer.byteLength(JSON.stringify(data))},null,2);}const file=await readable(ctx,indexFile),data=JSON.parse(await fs.readFile(file,"utf8"));if(a.action==="stats")return JSON.stringify({path:path.relative(ctx.cwd,file),createdAt:data.createdAt,files:data.files,chunks:data.chunks},null,2);if(!a.query)throw new Error("query required");const q=terms(a.query),scored=data.records.map(r=>({score:q.reduce((n,t)=>n+(r.text.toLowerCase().includes(t)?1:0),0),...r})).filter(r=>r.score).sort((x,y)=>y.score-x.score).slice(0,a.limit||12).map(r=>({...r,text:r.text.slice(0,2500)}));return JSON.stringify({query:a.query,matches:scored},null,2);}
+});

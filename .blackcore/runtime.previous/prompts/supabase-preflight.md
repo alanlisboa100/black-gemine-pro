@@ -1,0 +1,1 @@
+Prepare this project for Supabase safely. Inspect `supabase/config.toml`, migrations and Edge Functions without exposing credentials. Run `deploy_preflight` for Supabase; run a database lint only against the requested local or linked target; check Functions before any deployment. Never run `db push`, alter secrets or deploy a Function unless the user explicitly authorizes it.

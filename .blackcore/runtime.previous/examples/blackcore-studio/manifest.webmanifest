@@ -1,0 +1,15 @@
+{
+  "name": "BLACKCORE Studio",
+  "short_name": "BC Studio",
+  "description": "Workspace offline-first para código, resumos, pesquisa e Supabase opcional.",
+  "lang": "pt-BR",
+  "start_url": "./#workspace",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#08090c",
+  "theme_color": "#08090c",
+  "icons": [
+    {"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"},
+    {"src":"icon-maskable.svg","sizes":"any","type":"image/svg+xml","purpose":"maskable"}
+  ]
+}

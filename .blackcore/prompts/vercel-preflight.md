@@ -1,0 +1,1 @@
+Prepare this project for Vercel. Detect framework/package manager, inspect Vercel/Next configuration, verify required environment variable names without printing secrets, install dependencies if needed, and run the production build. Do not deploy until the local preflight passes.

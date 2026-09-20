@@ -1,0 +1,45 @@
+import {applyNaturalIntent} from './src/natural/intent.js';
+import {DEFAULT_CONFIG} from './src/config/defaults.js';
+
+function mk(){const cfg=structuredClone(DEFAULT_CONFIG),events=[];const agent={provider:cfg.provider,model:cfg.model,mode:cfg.mode,routeLockOnce:false,setModel(p,m){this.provider=p;this.model=m},checkpoints:{async undo(){events.push('UNDO');return'undo ok'}}};const app={agent,session:{},runtime:{cwd:process.cwd(),cfg,saveConfig(){},ui:{status:x=>events.push('STATUS '+x),notify:x=>events.push('NOTIFY '+x)}},events,async replaceSession(){events.push('SESSION')}};return app;}
+const cases=[
+ ['usa o pro',a=>a.agent.model==='deepseek-v4-pro'],
+ ['vai de pro',a=>a.agent.model==='deepseek-v4-pro'],
+ ['bota o flash',a=>a.agent.model==='deepseek-v4-flash'],
+ ['usa o luna no medium',a=>a.agent.provider==='openai'&&a.agent.model==='gpt-5.6-luna'&&a.runtime.cfg.reasoningEffort==='medium'],
+ ['usa sol no max',a=>a.agent.provider==='openai'&&a.agent.model==='gpt-5.6-sol'&&a.runtime.cfg.reasoningEffort==='max'],
+ ['troca para terra no xhigh',a=>a.agent.provider==='openai'&&a.agent.model==='gpt-5.6-terra'&&a.runtime.cfg.reasoningEffort==='xhigh'],
+ ['usa gemini 3.7 flash no high',a=>a.agent.provider==='google'&&a.agent.model==='gemini-3.7-flash'&&a.runtime.cfg.reasoningEffort==='high'],
+ ['usa gemini 3.6 flash no high',a=>a.agent.provider==='google'&&a.agent.model==='gemini-3.6-flash'&&a.runtime.cfg.reasoningEffort==='high'],
+ ['usa gemini 3.5 flash lite no minimal',a=>a.agent.provider==='google'&&a.agent.model==='gemini-3.5-flash-lite'&&a.runtime.cfg.reasoningEffort==='minimal'],
+ ['usa gemini 2.5 pro no high',a=>a.agent.model===DEFAULT_CONFIG.model&&a.events.some(x=>x.includes('not configured'))],
+ ['usa gemini 2.5 flash lite sem raciocinio',a=>a.agent.model===DEFAULT_CONFIG.model&&a.events.some(x=>x.includes('not configured'))],
+ ['usa gemini 3.1 flash lite no high',a=>a.agent.provider==='google'&&a.agent.model==='gemini-3.1-flash-lite'&&a.runtime.cfg.reasoningEffort==='high'],
+ ['só analisa e não mexe em nada',a=>a.agent.mode==='PLAN'],
+ ['primeiro só olha o projeto, não altera nada',a=>a.agent.mode==='PLAN'],
+ ['não faz nada ainda, só vê o que tá errado',a=>a.agent.mode==='PLAN'],
+ ['agora pode mexer e resolver',a=>a.agent.mode==='ACT'],
+ ['mete a mão e resolve isso',a=>a.agent.mode==='ACT'],
+ ['agora faz as mudanças',a=>a.agent.mode==='ACT'],
+ ['pensa no máximo',a=>a.runtime.cfg.reasoningEffort==='max'],
+ ['capricha e pensa bastante',a=>a.runtime.cfg.reasoningEffort==='max'],
+ ['usa o raciocínio máximo nessa',a=>a.runtime.cfg.reasoningEffort==='max'],
+ ['desliga as animações',a=>a.runtime.cfg.animation===false],
+ ['liga as animações',a=>a.runtime.cfg.animation===true],
+ ['deixa você escolher o modelo sozinho',a=>a.runtime.cfg.autoRoute===true],
+ ['modelo automático',a=>a.runtime.cfg.autoRoute===true],
+ ['qual modelo você está usando?',a=>a.events.some(x=>x.includes('Using '))],
+ ['modelo atual?',a=>a.events.some(x=>x.includes('Using '))],
+ ['desfaz isso',a=>a.events.includes('UNDO')],
+ ['volta atrás',a=>a.events.includes('UNDO')],
+ ['desfaz a última mudança',a=>a.events.includes('UNDO')],
+ ['nova conversa',a=>a.events.includes('SESSION')],
+ ['começa outra conversa',a=>a.events.includes('SESSION')],
+ ['sai',(_a,r)=>r.exit===true],
+ ['fecha o blackcore',(_a,r)=>r.exit===true],
+ ['fecha isso',(_a,r)=>r.exit===true],
+ ['usa o pro e corrige o projeto',a=>a.agent.model==='deepseek-v4-pro'&&a.agent.mode==='ACT'],
+ ['só analisa primeiro e depois me fala',a=>a.agent.mode==='PLAN'],
+];
+let pass=0;for(const [text,pred] of cases){const a=mk();a.agent.mode=text.includes('agora')||text.includes('mete')?'PLAN':a.agent.mode;const r=await applyNaturalIntent(a,text);let ok=false;try{ok=!!pred(a,r)}catch{};console.log(`${ok?'PASS':'FAIL'}\t${text}\t${JSON.stringify({model:a.agent.model,mode:a.agent.mode,effort:a.runtime.cfg.reasoningEffort,anim:a.runtime.cfg.animation,auto:a.runtime.cfg.autoRoute,handled:r.handled,exit:r.exit,events:a.events})}`);if(ok)pass++;}
+console.log(`SUMMARY ${pass}/${cases.length}`);if(pass!==cases.length)process.exitCode=1;

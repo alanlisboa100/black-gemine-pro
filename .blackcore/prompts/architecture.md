@@ -1,0 +1,1 @@
+Map this repository's architecture for a developer who needs to modify it. Identify entry points, modules, data/control flow, external services, persistence, build/test/deploy path, and the safest extension points. Base the answer on repository inspection rather than assumptions.

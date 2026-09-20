@@ -1,0 +1,1 @@
+Run the project's relevant tests, diagnose actual failures, fix the root causes with minimal changes, and re-run verification until the targeted tests pass. Do not silence or delete valid tests just to get green output.

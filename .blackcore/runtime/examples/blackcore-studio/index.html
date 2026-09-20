@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#08090c">
+  <meta name="description" content="BLACKCORE Studio: workspace offline-first para código, resumos, pesquisa e sincronização Supabase opcional.">
+  <title>BLACKCORE Studio</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Pular para o conteúdo</a>
+  <div class="ambient ambient-a" aria-hidden="true"></div><div class="ambient ambient-b" aria-hidden="true"></div>
+  <header class="topbar">
+    <a class="brand" href="#workspace" aria-label="BLACKCORE Studio, início"><span class="brand-mark" aria-hidden="true">B</span><span><strong>BLACKCORE</strong><small>STUDIO 3.4</small></span></a>
+    <div class="top-actions"><span class="connection-pill" id="connection-pill"><i aria-hidden="true"></i><span>Offline local</span></span><button class="icon-button" id="motion-toggle" type="button" aria-label="Reduzir animações" aria-pressed="false">◌</button><button class="button button-primary" id="new-item" type="button"><span>＋</span> Novo item</button></div>
+  </header>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Navegação principal">
+      <nav id="navigation">
+        <button class="nav-item active" type="button" data-view="workspace"><span>⌂</span>Workspace</button>
+        <button class="nav-item" type="button" data-view="summary"><span>◆</span>Resumos</button>
+        <button class="nav-item" type="button" data-view="research"><span>⌕</span>Pesquisas</button>
+        <button class="nav-item" type="button" data-view="products"><span>▦</span>Produtos</button>
+        <button class="nav-item" type="button" data-view="sync"><span>⇅</span>Supabase</button>
+      </nav>
+      <div class="sidebar-card"><span class="eyebrow">SAÚDE DO SISTEMA</span><div class="health-row"><strong id="health-score">9,3</strong><span>/10<br>pronto para piloto</span></div><div class="meter"><i style="--value:93%"></i></div><small>Baseado em evidência local, não em promessa de marketing.</small></div>
+    </aside>
+    <main id="main" tabindex="-1">
+      <section class="view active" id="view-workspace" data-view-panel="workspace" aria-labelledby="workspace-title">
+        <div class="hero"><div><span class="eyebrow">WORKSPACE OPERACIONAL</span><h1 id="workspace-title">Ideias viram <em>evidência.</em></h1><p>Código legível, resumos objetivos e pesquisa rastreável — com trabalho local mesmo sem conexão.</p></div><div class="orb" aria-label="Sistema ativo"><span>BC</span><i></i><b></b></div></div>
+        <div class="stat-grid"><article><span>Itens</span><strong id="stat-items">0</strong><small>workspace local</small></article><article><span>Fontes</span><strong id="stat-sources">0</strong><small>URLs rastreáveis</small></article><article><span>Produtos</span><strong>7</strong><small>notas auditadas</small></article><article><span>Sincronização</span><strong id="stat-sync">Local</strong><small id="stat-sync-detail">sem login necessário</small></article></div>
+        <div class="section-heading"><div><span class="eyebrow">ATIVIDADE</span><h2>Visão geral</h2></div><div class="segmented" role="group" aria-label="Filtrar itens"><button class="active" type="button" data-kind="all">Todos</button><button type="button" data-kind="code">Código</button><button type="button" data-kind="summary">Resumos</button><button type="button" data-kind="research">Pesquisa</button></div></div>
+        <label class="search-field"><span aria-hidden="true">⌕</span><span class="sr-only">Buscar no workspace</span><input id="workspace-search" type="search" placeholder="Buscar título, conteúdo ou tag…" autocomplete="off"></label>
+        <div class="workspace-grid"><div class="item-list" id="item-list" aria-live="polite"></div><aside class="inspector" id="inspector" aria-live="polite"><div class="empty-state"><span>⌁</span><h3>Selecione um item</h3><p>O conteúdo completo aparece aqui.</p></div></aside></div>
+      </section>
+      <section class="view" id="view-summary" data-view-panel="summary" aria-labelledby="summary-title"><div class="page-head"><span class="eyebrow">SÍNTESE</span><h1 id="summary-title">Resumos que preservam decisões.</h1><p>Objetivo, mudanças, evidência e pendências continuam separados para facilitar a retomada.</p></div><div class="content-grid" id="summary-grid"></div></section>
+      <section class="view" id="view-research" data-view-panel="research" aria-labelledby="research-title"><div class="page-head"><span class="eyebrow">PESQUISA RASTREÁVEL</span><h1 id="research-title">Fonte antes da conclusão.</h1><p>Cada achado mantém domínio, link e contexto. Snippet ajuda a descobrir; a fonte aberta sustenta a resposta.</p></div><div class="research-layout"><div class="source-list" id="research-grid"></div><aside class="method-card"><span class="eyebrow">MÉTODO</span><ol><li>Defina 2–4 consultas focadas.</li><li>Priorize documentação e fontes primárias.</li><li>Abra, compare e registre divergências.</li><li>Separe evidência de inferência.</li></ol></aside></div></section>
+      <section class="view" id="view-products" data-view-panel="products" aria-labelledby="products-title"><div class="page-head"><span class="eyebrow">READINESS 3.4</span><h1 id="products-title">Nota de cada produto.</h1><p>Notas ponderadas pelo que foi executado. Limites externos reduzem a categoria correspondente.</p></div><div class="score-legend"><span><i class="excellent"></i>9,5+ excelente</span><span><i class="strong"></i>9,0+ forte</span><span><i class="ready"></i>8,0+ pronto com limites</span></div><div class="product-grid" id="product-grid"></div></section>
+      <section class="view" id="view-sync" data-view-panel="sync" aria-labelledby="sync-title"><div class="page-head"><span class="eyebrow">BACKEND OPCIONAL</span><h1 id="sync-title">Supabase sem acoplar o núcleo.</h1><p>O Studio funciona offline. Conecte um projeto somente quando quiser autenticação e sincronização entre dispositivos.</p></div><div class="sync-grid"><article class="sync-card"><div class="sync-icon">▤</div><h2>Configuração</h2><p>Apenas URL e chave publicável/anon ficam no navegador. Nunca use <code>service_role</code> no cliente.</p><button class="button button-primary" id="open-sync-settings" type="button">Configurar conexão</button></article><article class="sync-card"><span class="eyebrow">FLUXO SEGURO</span><ol class="steps"><li><b>1</b><span><strong>Stack local</strong><small>supabase start + db reset</small></span></li><li><b>2</b><span><strong>Autenticação</strong><small>sessão guardada apenas nesta aba</small></span></li><li><b>3</b><span><strong>RLS por usuário</strong><small>owner_id = auth.uid()</small></span></li><li><b>4</b><span><strong>Deploy confirmado</strong><small>db push e Functions nunca silenciosos</small></span></li></ol></article></div></section>
+    </main>
+  </div>
+
+  <dialog id="item-dialog"><form method="dialog" id="item-form"><div class="dialog-head"><div><span class="eyebrow">NOVO REGISTRO</span><h2>Adicionar ao workspace</h2></div><button class="icon-button" type="button" aria-label="Fechar">×</button></div><label>Tipo<select name="kind"><option value="summary">Resumo</option><option value="code">Código</option><option value="research">Pesquisa</option></select></label><label>Título<input name="title" required maxlength="120"></label><label class="language-field" hidden>Linguagem<input name="language" maxlength="30" placeholder="javascript"></label><label>Conteúdo<textarea name="content" required rows="9" maxlength="50000"></textarea></label><label>Fonte (opcional)<input name="source_url" type="url" placeholder="https://…"></label><label>Tags<input name="tags" placeholder="release, supabase"></label><div class="dialog-actions"><button class="button dialog-cancel" type="button">Cancelar</button><button class="button button-primary" type="submit">Salvar item</button></div></form></dialog>
+  <dialog id="sync-dialog"><form method="dialog" id="sync-form"><div class="dialog-head"><div><span class="eyebrow">SUPABASE</span><h2>Conectar workspace</h2></div><button class="icon-button" type="button" aria-label="Fechar">×</button></div><label>Project URL<input name="url" type="url" required placeholder="https://projeto.supabase.co"></label><label>Chave publicável / anon<input name="key" required autocomplete="off" placeholder="sb_publishable_…"></label><div class="auth-grid"><label>E-mail<input name="email" type="email" autocomplete="username" placeholder="voce@exemplo.com"></label><label>Senha<input name="password" type="password" autocomplete="current-password" minlength="6"></label></div><p class="form-note" id="sync-message">A senha nunca é salva. O token de sessão é removido ao fechar a aba.</p><div class="dialog-actions spread"><button class="button button-danger" id="disconnect" type="button">Desconectar</button><span><button class="button" id="signup" type="button">Criar conta</button><button class="button button-primary" type="submit">Entrar e sincronizar</button></span></div></form></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+Perform a focused security review of this project. Inspect real code/configuration, identify concrete attack paths, rank them by severity, and propose minimal fixes plus tests. Do not expose any secret values.

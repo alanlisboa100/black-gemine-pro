@@ -1,0 +1,37 @@
+{
+  "product": "BLACKCORE Native",
+  "version": "3.2.0",
+  "date": "2026-08-10",
+  "overall": 9.4,
+  "method": "Evidence-weighted technical readiness score; live-device, live-browser and production-account gaps reduce the relevant categories.",
+  "gates": {
+    "javascriptSyntaxFiles": 283,
+    "automatedTests": {"passed": 162, "total": 162},
+    "naturalLanguageCorpus": {"passed": 38, "total": 38},
+    "toolMatrix": {"passed": 50, "total": 50},
+    "builtInTools": 65,
+    "npmKnownVulnerabilities": 0
+  },
+  "scores": {
+    "naturalLanguage": 9.8,
+    "stickyModelAndFallback": 9.9,
+    "termuxTui": 9.6,
+    "filesFoldersAndGit": 9.7,
+    "siteCreation": 9.6,
+    "siteAndCodeScanning": 9.5,
+    "animation": 9.2,
+    "webGames": 9.2,
+    "androidApk": 8.5,
+    "dependencies": 9.5,
+    "termuxPermissions": 9.3,
+    "documentsAndOcr": 9.4,
+    "security": 9.7,
+    "productionIntegrations": 8.9,
+    "sessionsExtensionsAndMcp": 9.5
+  },
+  "notExecutedLive": [
+    "Chromium visual screenshot inspection",
+    "APK build/install on a complete Android toolchain and device",
+    "Production deployment or email/database mutation with real credentials"
+  ]
+}
