@@ -79,5 +79,5 @@ test('unknown Gemini variant never selects a different model or changes reasonin
  const cfg=structuredClone(DEFAULT_CONFIG),original=cfg.model;let saved=0;
  const app={agent:{provider:cfg.provider,model:cfg.model,setModel(){throw new Error('wrong selection');}},runtime:{cfg,ui:{status(){}},saveConfig(){saved++;}}};
  const result=await applyNaturalIntent(app,'usa gemini 2.5 flash lite sem raciocinio');
- assert.equal(result.unavailableModel,'gemini-3.6-flash-lite');assert.equal(cfg.model,original);assert.equal(saved,0);
+ assert.equal(result.unavailableModel,'gemini-2.5-flash-lite');assert.equal(cfg.model,original);assert.equal(saved,0);
 });
