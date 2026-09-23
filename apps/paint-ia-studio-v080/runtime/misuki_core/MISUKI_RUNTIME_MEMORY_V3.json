@@ -1,0 +1,31 @@
+{
+  "id": "MISUKI_RUNTIME_MEMORY_V3",
+  "version": "3.0.0",
+  "purpose": "Compact permanent memory for Black Paint Studio character execution.",
+  "identity": {
+    "hair": "black, very long, dense mass first, 3-7 major fringe locks, few selective internal strands",
+    "horns": "exactly two by default, upper-lateral roots, outward then upward curve, thick base, tapered tip",
+    "face": "elegant anime adult proportions, tapered jaw, soft chin, expressive eyes, minimal nose and small mouth",
+    "outfit": "black gothic garment, choker anchor, curved torso silhouette, lace/strap/jewel details",
+    "monochrome": "face stays mostly white/light, hair/horns/outfit are dominant black masses with sparse gray separation"
+  },
+  "execution": {
+    "pipeline": ["P01_guides", "P02_head_horn_axes", "P03_hair_mass", "P04_face", "P05_neck_choker_shoulders", "P06_outfit", "P07_horn_volume", "P08_line_refinement", "P09_black_masses", "P10_gray_separation", "P11_details", "P12_thumbnail_gate", "P13_structural_gate", "P14_export"],
+    "advance_rule": "do not advance past a failed structural checkpoint",
+    "repair_order": ["silhouette", "horns", "hair", "face", "outfit", "tone", "detail"]
+  },
+  "negative_rules": [
+    "no roof or pentagon hair top",
+    "no comb-like field of parallel hair lines",
+    "no rectangular body block",
+    "no outfit made from horizontal placeholder bars",
+    "no detached horn roots",
+    "no equal line weight everywhere",
+    "no 98-100 identity score from contrast/symmetry metrics alone"
+  ],
+  "score_policy": {
+    "technical_score": "global raster quality only; never treated as identity fidelity",
+    "structural_fidelity": "geometry proxy; capped at 90 until a true reference-aware vision model exists",
+    "export_threshold": 82
+  }
+}

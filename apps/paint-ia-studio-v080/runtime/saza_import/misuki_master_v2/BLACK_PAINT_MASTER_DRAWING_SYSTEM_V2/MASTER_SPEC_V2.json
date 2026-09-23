@@ -1,0 +1,359 @@
+{
+  "spec_name": "BLACK_PAINT_MASTER_DRAWING_SYSTEM_V2",
+  "version": "2.0.0",
+  "purpose": "Machine-oriented visual drawing curriculum and runtime protocol for Misuki/Black Paint.",
+  "coordinate_system": {
+    "canvas_norm": "0..1 both axes",
+    "head_box": "local 0..1 coordinates; all face ratios relative to head box",
+    "line_width": "normalized to min(canvas_width, canvas_height)"
+  },
+  "canonical_dna": {
+    "character": "Misuki",
+    "style": "anime gothic elegant",
+    "hair": "very long black, heavy mass, long fringe",
+    "eyes": "expressive anime, red accent when color is allowed",
+    "horns": "black upward-curved integrated horns",
+    "outfit": "gothic black with lace/choker/jewelry",
+    "tone": "dark elegant mysterious, not generic"
+  },
+  "stroke_primitives": {
+    "face_c_curve": {
+      "tool": "curve",
+      "segments": 1,
+      "width_norm": 0.004,
+      "purpose": "jaw/cheek contour",
+      "rule": "single smooth gesture"
+    },
+    "hair_s_curve": {
+      "tool": "curve",
+      "segments": 1,
+      "width_norm": 0.006,
+      "purpose": "large hair strand boundary",
+      "rule": "one or two broad curvature changes"
+    },
+    "taper_strand": {
+      "tool": "curve",
+      "segments": 1,
+      "width_start_norm": 0.006,
+      "width_end_norm": 0.002,
+      "purpose": "hair finish"
+    },
+    "upper_eyelid": {
+      "tool": "curve",
+      "width_norm": 0.007,
+      "purpose": "eye expression",
+      "rule": "heaviest facial interior stroke"
+    },
+    "horn_axis": {
+      "tool": "curve",
+      "width_norm": 0.002,
+      "purpose": "construction only",
+      "rule": "hidden after volume construction"
+    },
+    "cloth_fold": {
+      "tool": "curve",
+      "width_norm": 0.003,
+      "purpose": "fabric volume",
+      "rule": "follow gravity and tension"
+    }
+  },
+  "stages": [
+    {
+      "id": "P01",
+      "name": "silhouette",
+      "goal": "Establish overall head/hair/body mass before detail",
+      "required_checks": [
+        "character fits frame",
+        "hair mass dominates silhouette",
+        "no straight roof"
+      ],
+      "on_fail": "stop_and_repair",
+      "checkpoint_required": true,
+      "max_retries": 2,
+      "depends_on": []
+    },
+    {
+      "id": "P02",
+      "name": "head_geometry",
+      "goal": "Construct cranium, jaw and chin with smooth curves",
+      "required_checks": [
+        "face_width/face_height 0.72-0.84",
+        "chin centered",
+        "no hard polygon"
+      ],
+      "on_fail": "stop_and_repair",
+      "checkpoint_required": true,
+      "max_retries": 3,
+      "depends_on": [
+        "P01"
+      ]
+    },
+    {
+      "id": "P03",
+      "name": "facial_guides",
+      "goal": "Place centerline, eye line, nose and mouth guides",
+      "required_checks": [
+        "eye line ~0.45-0.50 head height",
+        "symmetry reasonable"
+      ],
+      "on_fail": "stop_and_repair",
+      "checkpoint_required": true,
+      "max_retries": 2,
+      "depends_on": [
+        "P02"
+      ]
+    },
+    {
+      "id": "P04",
+      "name": "face_features",
+      "goal": "Build eyes, nose, mouth and expression",
+      "required_checks": [
+        "upper eyelid weighted",
+        "eyes alive",
+        "mouth small/elegant"
+      ],
+      "on_fail": "stop_and_repair",
+      "checkpoint_required": true,
+      "max_retries": 3,
+      "depends_on": [
+        "P03"
+      ]
+    },
+    {
+      "id": "P05",
+      "name": "horns",
+      "goal": "Build horns from axis to volume",
+      "required_checks": [
+        "base integrated",
+        "curve outward then upward",
+        "taper to tip"
+      ],
+      "on_fail": "stop_and_repair",
+      "checkpoint_required": true,
+      "max_retries": 3,
+      "depends_on": [
+        "P04"
+      ]
+    },
+    {
+      "id": "P06",
+      "name": "hair",
+      "goal": "Build hair as masses, fringe, big strands, finish strands",
+      "required_checks": [
+        "5-8 main masses",
+        "3-6 fringe groups",
+        "8-15 internal separators max"
+      ],
+      "on_fail": "stop_and_repair",
+      "checkpoint_required": true,
+      "max_retries": 3,
+      "depends_on": [
+        "P05"
+      ]
+    },
+    {
+      "id": "P07",
+      "name": "anatomy",
+      "goal": "Neck, shoulders, clavicle and torso base",
+      "required_checks": [
+        "neck not rectangular",
+        "shoulders long curves",
+        "torso supports clothing"
+      ],
+      "on_fail": "stop_and_repair",
+      "checkpoint_required": true,
+      "max_retries": 3,
+      "depends_on": [
+        "P06"
+      ]
+    },
+    {
+      "id": "P08",
+      "name": "clothing_base",
+      "goal": "Build gothic clothing silhouette on anatomy",
+      "required_checks": [
+        "gothic read",
+        "no bar-only clothing",
+        "clear neckline/corset structure"
+      ],
+      "on_fail": "stop_and_repair",
+      "checkpoint_required": true,
+      "max_retries": 3,
+      "depends_on": [
+        "P07"
+      ]
+    },
+    {
+      "id": "P09",
+      "name": "accessories",
+      "goal": "Add choker, gem, lace, buckles, chains selectively",
+      "required_checks": [
+        "accessories reinforce identity",
+        "not cluttered"
+      ],
+      "on_fail": "stop_and_repair",
+      "checkpoint_required": true,
+      "max_retries": 2,
+      "depends_on": [
+        "P08"
+      ]
+    },
+    {
+      "id": "P10",
+      "name": "lineart",
+      "goal": "Clean contour and line hierarchy",
+      "required_checks": [
+        "outer line heavier",
+        "internal lines controlled",
+        "no accidental tangencies"
+      ],
+      "on_fail": "stop_and_repair",
+      "checkpoint_required": true,
+      "max_retries": 2,
+      "depends_on": [
+        "P09"
+      ]
+    },
+    {
+      "id": "P11",
+      "name": "base_values",
+      "goal": "Apply black/white/gray base masses",
+      "required_checks": [
+        "clean fills",
+        "face remains readable",
+        "hair and horns separable"
+      ],
+      "on_fail": "stop_and_repair",
+      "checkpoint_required": true,
+      "max_retries": 2,
+      "depends_on": [
+        "P10"
+      ]
+    },
+    {
+      "id": "P12",
+      "name": "shadows",
+      "goal": "Apply form, cast and occlusion shadows",
+      "required_checks": [
+        "consistent light direction",
+        "shadows reinforce form"
+      ],
+      "on_fail": "stop_and_repair",
+      "checkpoint_required": true,
+      "max_retries": 2,
+      "depends_on": [
+        "P11"
+      ]
+    },
+    {
+      "id": "P13",
+      "name": "highlights",
+      "goal": "Apply selective highlights",
+      "required_checks": [
+        "eyes/hair/accessory priority",
+        "no random shine"
+      ],
+      "on_fail": "stop_and_repair",
+      "checkpoint_required": true,
+      "max_retries": 2,
+      "depends_on": [
+        "P12"
+      ]
+    },
+    {
+      "id": "P14",
+      "name": "scene_finish",
+      "goal": "Compose scene, integrate light, final validation",
+      "required_checks": [
+        "scene supports character",
+        "face highest priority",
+        "export gate passed"
+      ],
+      "on_fail": "stop_and_repair",
+      "checkpoint_required": true,
+      "max_retries": 2,
+      "depends_on": [
+        "P13"
+      ]
+    }
+  ],
+  "hard_negative_rules": [
+    "no polygon roof hair",
+    "no hair built mainly from parallel lines",
+    "no rectangular neck",
+    "no bar-only clothing",
+    "no detached horns",
+    "no dead eyes",
+    "no export after failed structural gate",
+    "no detail pass before silhouette/head/hair are valid"
+  ],
+  "scoring": {
+    "structural": {
+      "weight": 0.65,
+      "components": {
+        "silhouette": 15,
+        "head": 10,
+        "eyes": 10,
+        "horns": 10,
+        "hair": 10,
+        "anatomy": 5,
+        "clothing": 5
+      }
+    },
+    "finish": {
+      "weight": 0.35,
+      "components": {
+        "line_quality": 8,
+        "values": 7,
+        "light": 7,
+        "accessories": 5,
+        "scene_integration": 5,
+        "expression": 3
+      }
+    },
+    "export_threshold": 82,
+    "critical_rule_fail_overrides_score": true
+  },
+  "repair_priority": [
+    "silhouette",
+    "head",
+    "horns",
+    "hair",
+    "eyes/face",
+    "anatomy",
+    "clothing",
+    "values",
+    "finish",
+    "scene"
+  ],
+  "creativity_unlock": {
+    "requires_structural_score": 88,
+    "allowed_variation": [
+      "pose",
+      "camera",
+      "expression",
+      "secondary outfit details",
+      "lighting",
+      "scenario"
+    ],
+    "must_preserve": [
+      "horns",
+      "long black hair",
+      "gothic elegance",
+      "face identity anchors"
+    ]
+  },
+  "visual_plate_map": {
+    "03_hair_masses.png": "visual_plates/03_hair_masses.png",
+    "11_checkpoint_map.png": "visual_plates/11_checkpoint_map.png",
+    "10_failure_vs_fix.png": "visual_plates/10_failure_vs_fix.png",
+    "08_shading_lighting.png": "visual_plates/08_shading_lighting.png",
+    "04_horns.png": "visual_plates/04_horns.png",
+    "07_stroke_library.png": "visual_plates/07_stroke_library.png",
+    "06_gothic_clothing.png": "visual_plates/06_gothic_clothing.png",
+    "09_scene_composition.png": "visual_plates/09_scene_composition.png",
+    "02_face_features.png": "visual_plates/02_face_features.png",
+    "01_head_construction.png": "visual_plates/01_head_construction.png",
+    "05_neck_shoulders.png": "visual_plates/05_neck_shoulders.png"
+  }
+}

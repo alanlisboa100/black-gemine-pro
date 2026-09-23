@@ -1,0 +1,11 @@
+[BLACK_PAINT_RUNTIME_MEMORY_V2]
+MISSION: draw Misuki through gated visual stages, not through loose prompting.
+DNA: anime gothic elegant; very long black hair; integrated upward-curved black horns; expressive eyes; gothic black clothing with choker/lace/jewelry.
+STROKE LOGIC: large form first -> major masses -> controlled curves -> limited detail -> clean line hierarchy.
+HAIR: 5-8 main masses, 3-6 fringe groups, 8-15 separators; never parallel-line spaghetti or polygon roof.
+FACE: smooth jaw, centered chin, weighted upper eyelid, small nose/mouth, alive eyes.
+ANATOMY: neck and shoulders are curves, never rectangles; clothing sits on anatomy.
+PIPELINE: P01 silhouette -> P02 head -> P03 guides -> P04 face -> P05 horns -> P06 hair -> P07 anatomy -> P08 clothing -> P09 accessories -> P10 lineart -> P11 values -> P12 shadows -> P13 highlights -> P14 scene/final.
+GATE: any structural fail = STOP, REPAIR, RECHECK.
+EXPORT: only if structural gates pass, final score >=82, and no critical negative rule fails.
+CREATIVITY: unlock only after structure is stable; vary pose/camera/light/scenario while preserving DNA.

@@ -1,0 +1,545 @@
+{
+  "id": "SCENARIO_RECIPES_V2",
+  "version": "2.0.0",
+  "purpose": "Machine-readable scene composition memory for beautiful backgrounds that support, not compete with, Misuki.",
+  "global_rules": [
+    "face/eyes are the first focal point",
+    "build background from large value masses before props",
+    "use at least background + midground + subject; foreground when useful",
+    "keep upper-face/horn safe zone lower-detail and lower-contrast than face",
+    "concentrate props on side thirds and lower corners",
+    "one dominant key-light direction; secondary rim is allowed",
+    "use perspective and repeated architecture to guide the eye toward subject",
+    "foreground framing may overlap outer silhouette but never face or horn tips",
+    "atmosphere must be sparse enough to preserve silhouette",
+    "for monochrome, separate black subject from dark scene with light negative space or rim light"
+  ],
+  "camera_recipes": {
+    "portrait": "50-85mm equivalent, eye level, head/shoulder clearance, avoid wide-angle face distortion",
+    "half_body": "45-65mm equivalent, leave lower third for garment and foreground framing",
+    "full_body": "35-50mm equivalent, preserve feet and horn clearance, stronger perspective only in environment",
+    "dramatic": "slight low angle, never extreme enough to distort face/horns"
+  },
+  "lighting_recipes": {
+    "soft_gothic": "large soft key 30-45 degrees + faint opposite rim",
+    "moonlit": "cool back/side moon key + soft face fill",
+    "candle": "warm low side accents + neutral/cool face fill",
+    "cyber": "cyan/red edge accents + neutral frontal face fill",
+    "monochrome": "light gray separation behind hair/horns + white face window + sparse mid-gray form shadows"
+  },
+  "quality_gates": {
+    "S01": "subject zone reserved; horizon/perspective does not cut face",
+    "S02": "large light/dark masses readable at thumbnail size",
+    "S03": "architecture/nature establishes depth without tangents at horn silhouette",
+    "S04": "lighting direction coherent and face readable",
+    "S05": "props support story and stay out of face zone",
+    "S06": "atmosphere enhances depth without erasing silhouette",
+    "S07": "foreground frames inward, does not cover face",
+    "S08": "face is focal point; 3 depth planes readable; scene supports character"
+  },
+  "profiles": {
+    "minimal_studio": {
+      "id": "minimal_studio",
+      "label": "Minimal Studio",
+      "keywords": [
+        "studio",
+        "fundo simples",
+        "background simple",
+        "minimal",
+        "clean"
+      ],
+      "mood": "clean_dark_elegant",
+      "composition": "centered portrait with large negative space around face",
+      "camera": "portrait 50mm equivalent, eye level",
+      "lighting": "soft key from upper-left + faint rim",
+      "palette": [
+        "#F7F7F7",
+        "#D9D9DD",
+        "#17171B",
+        "#050506"
+      ],
+      "depth_planes": [
+        "soft gradient wall",
+        "subject",
+        "subtle vignette"
+      ],
+      "props": [],
+      "foreground": [],
+      "atmosphere": [
+        "very soft grain"
+      ],
+      "avoid": [
+        "busy background",
+        "high contrast behind face"
+      ],
+      "subject_clearance": 0.58
+    },
+    "gothic_bedroom": {
+      "id": "gothic_bedroom",
+      "label": "Gothic Bedroom",
+      "keywords": [
+        "quarto",
+        "bedroom",
+        "cama",
+        "bed",
+        "gothic room",
+        "quarto gótico",
+        "quarto gotico"
+      ],
+      "mood": "intimate_gothic",
+      "composition": "subject centered or rule-of-thirds beside a tall window; bed and drapery frame the lower scene",
+      "camera": "portrait or half-body, slightly low eye-level",
+      "lighting": "window backlight + warm candle accents + soft face key",
+      "palette": [
+        "#0A0A0E",
+        "#222029",
+        "#6D2636",
+        "#B98A74",
+        "#E8E2E2"
+      ],
+      "depth_planes": [
+        "window/moon",
+        "curtains and wall panels",
+        "bed/headboard",
+        "subject",
+        "foreground fabric/roses"
+      ],
+      "props": [
+        "tall window",
+        "heavy curtains",
+        "ornate headboard",
+        "candles",
+        "small gothic mirror",
+        "red crystal ornament"
+      ],
+      "foreground": [
+        "dark fabric folds",
+        "few rose petals"
+      ],
+      "atmosphere": [
+        "dust motes",
+        "soft bloom",
+        "gentle vignette"
+      ],
+      "avoid": [
+        "modern bright bedroom",
+        "flat empty wall",
+        "objects crossing face"
+      ],
+      "subject_clearance": 0.42
+    },
+    "moonlit_cathedral": {
+      "id": "moonlit_cathedral",
+      "label": "Moonlit Cathedral",
+      "keywords": [
+        "cathedral",
+        "catedral",
+        "igreja gótica",
+        "gothic cathedral",
+        "vitrais",
+        "stained glass"
+      ],
+      "mood": "sacred_dark_cinematic",
+      "composition": "strong vertical arches; subject at center aisle or slightly off-center; converging perspective guides to face",
+      "camera": "medium portrait with mild low angle",
+      "lighting": "cold moon shaft + dim stained-glass bounce + narrow rim",
+      "palette": [
+        "#08090E",
+        "#171925",
+        "#4D536B",
+        "#8D1F34",
+        "#E7E8ED"
+      ],
+      "depth_planes": [
+        "rose window",
+        "arches/columns",
+        "altar or aisle",
+        "subject",
+        "foreground candles"
+      ],
+      "props": [
+        "pointed arches",
+        "stained glass",
+        "stone columns",
+        "candles",
+        "ornamental altar"
+      ],
+      "foreground": [
+        "blurred candle silhouettes"
+      ],
+      "atmosphere": [
+        "volumetric light",
+        "floating dust",
+        "thin floor mist"
+      ],
+      "avoid": [
+        "bright daytime church",
+        "dense ornament directly behind face"
+      ],
+      "subject_clearance": 0.42
+    },
+    "cyber_rain_city": {
+      "id": "cyber_rain_city",
+      "label": "Cyber Rain City",
+      "keywords": [
+        "cyber",
+        "cyberpunk",
+        "cidade",
+        "city",
+        "neon city",
+        "chuva",
+        "rain",
+        "rua neon"
+      ],
+      "mood": "neon_noir",
+      "composition": "subject foreground; perspective street recedes diagonally; signs pushed to side thirds",
+      "camera": "waist-up or full-body, 35-50mm equivalent",
+      "lighting": "cyan/red neon rim + soft frontal fill + wet-ground reflections",
+      "palette": [
+        "#05070A",
+        "#0E1B22",
+        "#0B6D7C",
+        "#B41736",
+        "#E9F2F4"
+      ],
+      "depth_planes": [
+        "distant towers",
+        "mid street/signs",
+        "subject",
+        "foreground rain/reflection"
+      ],
+      "props": [
+        "neon panels",
+        "cables",
+        "wet street",
+        "distant towers",
+        "small holographic symbols"
+      ],
+      "foreground": [
+        "rain streaks",
+        "wet reflection streaks"
+      ],
+      "atmosphere": [
+        "rain",
+        "mist",
+        "neon bloom"
+      ],
+      "avoid": [
+        "text-heavy signs",
+        "neon over face",
+        "random rainbow palette"
+      ],
+      "subject_clearance": 0.42
+    },
+    "occult_library": {
+      "id": "occult_library",
+      "label": "Occult Library",
+      "keywords": [
+        "biblioteca",
+        "library",
+        "livros",
+        "books",
+        "occult",
+        "oculto",
+        "grimório",
+        "grimoire"
+      ],
+      "mood": "mysterious_scholarly",
+      "composition": "bookshelves frame both sides; arch/window behind; subject clear in center",
+      "camera": "seated or half-body portrait, eye level",
+      "lighting": "warm candle key + cool window rim",
+      "palette": [
+        "#080808",
+        "#1D1717",
+        "#4B332B",
+        "#7F2437",
+        "#E7DDD0"
+      ],
+      "depth_planes": [
+        "arched window",
+        "bookshelves",
+        "desk/chair",
+        "subject",
+        "foreground books/candle"
+      ],
+      "props": [
+        "bookshelves",
+        "old books",
+        "candle",
+        "small crystal",
+        "ornate desk",
+        "subtle geometric sigil"
+      ],
+      "foreground": [
+        "book edge",
+        "candle blur"
+      ],
+      "atmosphere": [
+        "dust motes",
+        "thin smoke",
+        "warm pool of light"
+      ],
+      "avoid": [
+        "giant readable occult text",
+        "clutter covering silhouette"
+      ],
+      "subject_clearance": 0.42
+    },
+    "dark_rose_garden": {
+      "id": "dark_rose_garden",
+      "label": "Dark Rose Garden",
+      "keywords": [
+        "rose",
+        "roses",
+        "rosa",
+        "rosas",
+        "garden",
+        "jardim",
+        "jardim gótico",
+        "gothic garden"
+      ],
+      "mood": "romantic_dark",
+      "composition": "arched garden frame with subject in open center; roses concentrated on outer thirds",
+      "camera": "portrait or seated full-body",
+      "lighting": "moonlight + soft red bounce from roses",
+      "palette": [
+        "#070A08",
+        "#172019",
+        "#4A1723",
+        "#891D34",
+        "#E8E6E0"
+      ],
+      "depth_planes": [
+        "moon/clouds",
+        "hedges/arch",
+        "subject",
+        "foreground roses"
+      ],
+      "props": [
+        "stone arch",
+        "dark roses",
+        "ivy",
+        "small lanterns",
+        "stone bench"
+      ],
+      "foreground": [
+        "rose silhouettes",
+        "petals"
+      ],
+      "atmosphere": [
+        "mist",
+        "firefly-like motes",
+        "moon haze"
+      ],
+      "avoid": [
+        "bright cheerful garden",
+        "flowers over face"
+      ],
+      "subject_clearance": 0.42
+    },
+    "throne_chamber": {
+      "id": "throne_chamber",
+      "label": "Black Throne Chamber",
+      "keywords": [
+        "throne",
+        "trono",
+        "palace",
+        "palácio",
+        "palacio",
+        "chamber",
+        "salão",
+        "sala do trono"
+      ],
+      "mood": "regal_dark",
+      "composition": "central throne, symmetric columns, subject dominant; floor lines lead inward",
+      "camera": "slightly low angle, 50mm equivalent",
+      "lighting": "high backlight behind throne + narrow side keys",
+      "palette": [
+        "#050506",
+        "#17171B",
+        "#34313A",
+        "#761C2D",
+        "#EFECE8"
+      ],
+      "depth_planes": [
+        "back wall/drape",
+        "columns/throne",
+        "subject",
+        "reflective floor foreground"
+      ],
+      "props": [
+        "ornate black throne",
+        "tall columns",
+        "dark drapes",
+        "small red crystals",
+        "metal details"
+      ],
+      "foreground": [
+        "floor reflection",
+        "shadow vignette"
+      ],
+      "atmosphere": [
+        "low haze",
+        "subtle particles"
+      ],
+      "avoid": [
+        "overly ornate face background",
+        "flat black blob behind hair"
+      ],
+      "subject_clearance": 0.42
+    },
+    "neon_lab": {
+      "id": "neon_lab",
+      "label": "Neon AI Lab",
+      "keywords": [
+        "laboratório",
+        "laboratorio",
+        "lab",
+        "ai lab",
+        "hologram",
+        "holográfico",
+        "holografico",
+        "terminal"
+      ],
+      "mood": "clean_tech_dark",
+      "composition": "subject center-right; panels on side thirds; one clean halo panel behind head",
+      "camera": "waist-up, eye level",
+      "lighting": "cool cyan key + magenta/red rim + dark ambient",
+      "palette": [
+        "#06080A",
+        "#111920",
+        "#147A84",
+        "#8A1C3B",
+        "#E8F2F2"
+      ],
+      "depth_planes": [
+        "dark lab wall",
+        "side panels",
+        "subject",
+        "foreground console"
+      ],
+      "props": [
+        "holographic panels",
+        "cables",
+        "glass cylinders",
+        "small status lights",
+        "black workstation"
+      ],
+      "foreground": [
+        "console edge",
+        "soft glass reflections"
+      ],
+      "atmosphere": [
+        "thin haze",
+        "tiny particles",
+        "screen bloom"
+      ],
+      "avoid": [
+        "dense UI text",
+        "bright white lab",
+        "panels crossing face"
+      ],
+      "subject_clearance": 0.42
+    },
+    "moon_balcony": {
+      "id": "moon_balcony",
+      "label": "Moon Balcony",
+      "keywords": [
+        "balcony",
+        "varanda",
+        "lua",
+        "moon",
+        "night sky",
+        "céu noturno",
+        "ceu noturno"
+      ],
+      "mood": "quiet_melancholic",
+      "composition": "large moon offset from head; railing low; curtains frame sides",
+      "camera": "portrait/full-body, slight upward angle optional",
+      "lighting": "strong moon rim + soft face fill",
+      "palette": [
+        "#05060A",
+        "#101522",
+        "#303B55",
+        "#6F1D31",
+        "#ECEEF5"
+      ],
+      "depth_planes": [
+        "moon/clouds",
+        "balcony architecture",
+        "subject",
+        "foreground curtains"
+      ],
+      "props": [
+        "ornate railing",
+        "tall curtains",
+        "distant skyline",
+        "small roses"
+      ],
+      "foreground": [
+        "curtain edge"
+      ],
+      "atmosphere": [
+        "slow clouds",
+        "mist",
+        "moon bloom"
+      ],
+      "avoid": [
+        "moon directly behind horns with no separation",
+        "busy skyline"
+      ],
+      "subject_clearance": 0.42
+    },
+    "forest_shrine": {
+      "id": "forest_shrine",
+      "label": "Night Forest Shrine",
+      "keywords": [
+        "forest",
+        "floresta",
+        "shrine",
+        "santuário",
+        "santuario",
+        "torii",
+        "templo",
+        "woods"
+      ],
+      "mood": "mystic_night",
+      "composition": "path leading to subject; vertical trees on outer thirds; shrine gate behind",
+      "camera": "full-body or 3/4 body, eye level",
+      "lighting": "moon shafts + lantern warm accents",
+      "palette": [
+        "#050806",
+        "#0E1B13",
+        "#233929",
+        "#772033",
+        "#E3E9E2"
+      ],
+      "depth_planes": [
+        "distant moon",
+        "trees/shrine gate",
+        "subject",
+        "foreground foliage"
+      ],
+      "props": [
+        "dark trees",
+        "stone path",
+        "lanterns",
+        "simple shrine gate",
+        "moss"
+      ],
+      "foreground": [
+        "soft foliage silhouettes"
+      ],
+      "atmosphere": [
+        "mist",
+        "fireflies",
+        "light shafts"
+      ],
+      "avoid": [
+        "dense leaves over face",
+        "bright daytime green"
+      ],
+      "subject_clearance": 0.42
+    }
+  }
+}

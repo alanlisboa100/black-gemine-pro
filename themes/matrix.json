@@ -1,0 +1,15 @@
+{
+  "name": "matrix",
+  "colors": {
+    "accent": 46,
+    "ok": 82,
+    "warn": 226,
+    "error": 196,
+    "dim": 240,
+    "text": 250,
+    "assistant": 48,
+    "user": 118,
+    "tool": 77,
+    "border": 22
+  }
+}

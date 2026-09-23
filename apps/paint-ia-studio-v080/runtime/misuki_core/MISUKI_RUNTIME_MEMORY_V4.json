@@ -1,0 +1,80 @@
+{
+  "id": "MISUKI_RUNTIME_MEMORY_V4",
+  "version": "4.0.0",
+  "purpose": "Compact permanent memory for Black Paint Studio execution and scene-aware fidelity.",
+  "identity": {
+    "hair": "black, very long, dense mass first, 3-7 major fringe locks, no comb-like stripe field",
+    "horns": "exactly two by default, upper-lateral roots, outward then upward curve, thick base, tapered tip, visually attached to skull/hairline",
+    "face": "elegant anime adult proportions, tapered jaw, soft chin, expressive eyes, minimal nose, small mouth",
+    "outfit": "black gothic garment, choker anchor, curved torso silhouette, neckline plus sparse lace/strap/jewel details",
+    "monochrome": "face remains mostly light; hair/horns/outfit are dominant black masses with sparse gray separation"
+  },
+  "execution": {
+    "pipeline": [
+      "P01_guides",
+      "P02_head_horn_axes",
+      "P03_hair_mass",
+      "P04_face",
+      "P05_neck_choker_shoulders",
+      "P06_outfit",
+      "P07_horn_volume",
+      "P08_fringe_line_hierarchy",
+      "P09_black_masses",
+      "P10_gray_separation",
+      "P11_details_cleanup",
+      "P12_thumbnail_gate",
+      "P13_structural_gate",
+      "P14_export"
+    ],
+    "advance_rule": "do not advance past failed validation; repair current stage first",
+    "repair_order": [
+      "silhouette",
+      "horns",
+      "hair",
+      "face",
+      "outfit",
+      "tone",
+      "detail"
+    ],
+    "paint_program": "use BLACKCORE_MISUKI_PAINT_PROGRAM v4; it contains small executable operations, normalized coordinates, tools, widths, dependencies and retry behavior",
+    "checkpoint_policy": "hard-stop current build stage on structural failure; emit partial diagnostic and retry current stage before later stages"
+  },
+  "scene_rules": {
+    "core": "scene supports the character; it must never compete with the face",
+    "depth": "use foreground + midground + background",
+    "focus": "highest local contrast belongs to face/eyes; props live mainly on side thirds",
+    "lighting": "one dominant lighting direction; use rim/backlight to separate black hair and horns",
+    "safe_zone": "reduce detail and contrast behind the upper face/horns",
+    "allowed_profiles": [
+      "minimal_studio",
+      "gothic_bedroom",
+      "moonlit_cathedral",
+      "cyber_rain_city",
+      "occult_library",
+      "dark_rose_garden",
+      "throne_chamber",
+      "neon_lab",
+      "moon_balcony",
+      "forest_shrine"
+    ],
+    "recipe_source": "runtime/misuki_core/SCENARIO_RECIPES_V2.json",
+    "execution_protocol": "runtime/misuki_core/SCENARIO_EXECUTION_PROTOCOL_V2.md"
+  },
+  "negative_rules": [
+    "no roof or pentagon hair top",
+    "no comb-like field of parallel hair lines",
+    "no rectangular body block",
+    "no outfit made from horizontal placeholder bars",
+    "no detached horn roots",
+    "no equal line weight everywhere",
+    "no busy high-contrast background behind face",
+    "no props covering face/horns",
+    "no false 98-100 identity score from contrast/symmetry alone"
+  ],
+  "score_policy": {
+    "technical_score": "global raster quality only; never identity fidelity",
+    "structural_fidelity": "geometry/pixel proxy; capped at 90 until a true reference-aware vision model exists",
+    "scene_quality": "composition proxy based on depth, safe-zone, lighting coherence and focal hierarchy",
+    "export_threshold": 82
+  }
+}

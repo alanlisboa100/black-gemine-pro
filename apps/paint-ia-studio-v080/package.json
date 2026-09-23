@@ -1,0 +1,24 @@
+{
+  "name": "black-paint-studio",
+  "version": "0.8.0",
+  "description": "Black Core local visual engine + adaptive smart photo editor + interactive paint studio for Termux, mobile and web",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/*.test.js",
+    "test:python": "python3 -m unittest discover -s test -p 'test_*.py'",
+    "test:all": "npm test && npm run test:python",
+    "check": "node --check server.js && node --check app.js && node --check brushes.js && node --check filters.js && python3 -m compileall -q blackcore_visual engine_cli.py photo_cli.py paint_cli.py paint_studio_pro.py paint_studio_v06_pro.py ai_painter.py"
+  },
+  "keywords": [
+    "paint",
+    "termux",
+    "blackcore",
+    "procedural-art",
+    "local-ai",
+    "generative-art"
+  ],
+  "author": "Alan Lisboa & BLACKCORE",
+  "license": "MIT"
+}

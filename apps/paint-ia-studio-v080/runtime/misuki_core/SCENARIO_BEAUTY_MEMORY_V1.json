@@ -1,0 +1,26 @@
+{
+  "id": "SCENARIO_BEAUTY_MEMORY_V1",
+  "version": "1.0.0",
+  "principles": [
+    "one dominant focal point: the face",
+    "large value masses before decoration",
+    "foreground + midground + background",
+    "props concentrated on side thirds",
+    "background contrast reduced behind face and horns",
+    "one coherent key-light direction",
+    "foreground may be darker/softer to frame the subject",
+    "atmosphere is sparse and must not erase silhouette"
+  ],
+  "profiles": [
+    "minimal_studio",
+    "gothic_bedroom",
+    "moonlit_cathedral",
+    "cyber_rain_city",
+    "occult_library",
+    "dark_rose_garden",
+    "throne_chamber",
+    "neon_lab",
+    "moon_balcony",
+    "forest_shrine"
+  ]
+}

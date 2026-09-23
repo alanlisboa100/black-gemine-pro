@@ -1,0 +1,15 @@
+{
+  "name": "black-numbers",
+  "version": "1.0.0",
+  "type": "relational-learning-core",
+  "entrypoint": "bn_daemon.py",
+  "api": "http://127.0.0.1:8117",
+  "ui": "http://127.0.0.1:8117/",
+  "health": "/health",
+  "status": "/v1/status",
+  "task": "/v1/task",
+  "observe": "/v1/observe",
+  "learn": "/v1/learn",
+  "compile": "/v1/compile",
+  "heartbeat": "/v1/core/heartbeat"
+}

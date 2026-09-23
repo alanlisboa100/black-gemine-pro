@@ -1,0 +1,82 @@
+{
+  "name": "blackcore-native",
+  "version": "3.8.1",
+  "description": "Natural-language-first independent terminal agent with professional photo, video and outfit editing for Termux and Linux",
+  "type": "module",
+  "bin": {
+    "blackcore": "./bin/blackcore.js"
+  },
+  "exports": {
+    ".": "./src/sdk/index.js",
+    "./sdk": "./src/sdk/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node ./bin/blackcore.js",
+    "doctor": "node ./bin/blackcore.js doctor",
+    "test": "node --import ./test/setup.js --test --test-concurrency=1 test/*.test.js",
+    "test:syntax": "bash scripts/check-syntax.sh",
+    "eval:natural": "node qa-natural-evals.mjs",
+    "manifest": "bash scripts/refresh-manifest.sh",
+    "verify": "npm run test:syntax && npm test && npm run eval:natural && npm run plugin:check && npm run plugin:test",
+    "package:check": "npm pack --dry-run --cache .blackcore/npm-cache",
+    "release:archive": "bash scripts/package-release.sh",
+    "plugin:test": "node --test ./plugins/blackcore/server/test/*.test.mjs",
+    "plugin:check": "node --check ./plugins/blackcore/server/index.mjs && node --check ./plugins/blackcore/server/workspace.mjs",
+    "test:tui": "node --test test/tui-motion.test.js",
+    "test:tools": "node --import ./test/setup.js qa-tool-matrix.mjs",
+    "test:natural": "node --import ./test/setup.js qa-natural-corpus.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "skills",
+    "prompts",
+    "themes",
+    "assets",
+    "templates",
+    "scripts",
+    "examples",
+    "evals",
+    "docs",
+    "README.md",
+    "VIDEO-EFFECTS-3.7.21.md",
+    "PHOTO-STUDIO-3.7.22.md",
+    "SECURITY.md",
+    "CONTRIBUTING.md",
+    "ROADMAP.md",
+    "LICENSE",
+    "INSTALAR-BLACKCORE.sh",
+    "qa-natural-evals.mjs",
+    "plugins",
+    "BLACKCORE-PLUGIN-MCP.md",
+    "test",
+    "qa-tool-matrix.mjs",
+    "qa-natural-corpus.mjs",
+    "AUDITORIA-3.8.1.md"
+  ],
+  "optionalDependencies": {
+    "playwright-core": "^1.62.1"
+  },
+  "keywords": [
+    "coding-agent",
+    "terminal",
+    "termux",
+    "openai",
+    "deepseek",
+    "mcp",
+    "agent",
+    "vercel",
+    "expo",
+    "video-editor",
+    "ffmpeg",
+    "termux-video",
+    "photo-editor",
+    "termux-photo",
+    "virtual-try-on",
+    "video-outfit-editor"
+  ],
+  "license": "MIT"
+}

@@ -1,0 +1,23 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BLACK NUMBERS // CORE</title><link rel="stylesheet" href="/styles.css"></head><body>
+<div class="shell"><header><div><b>◆ BLACK NUMBERS</b><span>// UNIFIED CORE 1.0</span></div><div id="health" class="pill">conectando…</div></header>
+<nav><button data-view="core" class="active">NÚCLEO</button><button data-view="lab">LAB</button><button data-view="knowledge">SABER</button><button data-view="vision">VISÃO</button><button data-view="tasks">TAREFAS</button><button data-view="journal">DIÁRIO</button></nav>
+<main>
+<section id="core" class="view active"><h1>Núcleo unificado</h1><p>Python + SQLite + linguagem .bn + runtime web, todos usando a mesma memória.</p><div id="stats" class="cards"></div><h2>Estratégia adaptativa</h2><pre id="strategy"></pre></section>
+<section id="lab" class="view"><h1>Lab .bn</h1><textarea id="code">node Core : diamond {
+  fill: lime
+  x: 0.5
+  y: 0.5
+  r: 36
+}
+relate Pulse : time -> Core.r {
+  via: 36 + sin(t * 0.0024) * 10
+}
+screen Main {
+  root: Core
+  bg: ink
+}</textarea><div class="row"><button id="compile">COMPILAR</button><span id="compileStatus"></span></div><canvas id="canvas" width="720" height="400"></canvas><pre id="compileOut"></pre></section>
+<section id="knowledge" class="view"><h1>Saber</h1><div id="knowledgeList"></div></section>
+<section id="vision" class="view"><h1>Visão observacional</h1><p>O scanner mede baixo nível (cor, foco, contraste, bordas). Ele registra <b>observações</b>, nunca “verdades” automáticas.</p><input id="visionFile" type="file" accept="image/*"><div id="visionInfo" class="item">nenhuma imagem</div><canvas id="visionCanvas" width="640" height="360"></canvas><div class="row"><button id="visionAbsorb" disabled>ABSORVER COMO OBSERVED</button></div></section>
+<section id="tasks" class="view"><h1>Tarefas</h1><div class="row"><input id="taskInput" placeholder="Nova tarefa de aprendizado"><button id="taskBtn">ENFILEIRAR</button><button id="cycleBtn">RODAR 1 CICLO</button></div><div id="taskList"></div></section>
+<section id="journal" class="view"><h1>Diário</h1><div id="journalList"></div></section>
+</main><footer>127.0.0.1:8117 · sem dependência de nuvem · JavaScript legado bloqueado por padrão</footer></div><script src="/app.js"></script></body></html>

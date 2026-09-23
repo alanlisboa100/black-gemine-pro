@@ -1,0 +1,80 @@
+{
+  "version": "1.0.0",
+  "black_core": {
+    "process_markers": [
+      "blackcore",
+      "black-core",
+      "black_core",
+      "baby_core.py",
+      "blackcorejunior"
+    ],
+    "heartbeat_file": "data/blackcore.heartbeat",
+    "heartbeat_ttl_seconds": 180,
+    "force_active_file": "data/force_core_active",
+    "api_host": "127.0.0.1",
+    "api_port": 8117,
+    "discovery_ports": [
+      8080,
+      8081,
+      8093,
+      8097
+    ]
+  },
+  "model": {
+    "primary_base_url": "http://127.0.0.1:8080/v1/chat/completions",
+    "name": "local-model",
+    "temperature": 0.2,
+    "max_tokens": 1200,
+    "timeout_seconds": 18,
+    "cooldown_seconds": 300
+  },
+  "learning": {
+    "enabled": true,
+    "run_without_blackcore": false,
+    "cycle_seconds": 60,
+    "idle_seconds": 20,
+    "max_task_retries": 4,
+    "retry_backoff_seconds": [
+      30,
+      120,
+      600,
+      1800
+    ],
+    "top_knowledge": 8,
+    "top_examples": 5,
+    "promotion_threshold": 0.82,
+    "promotion_confirmations": 2,
+    "self_curriculum": true,
+    "self_evolution": true,
+    "evolve_strategy_every": 8,
+    "export_dataset_every": 10
+  },
+  "knowledge": {
+    "chunk_chars": 2200,
+    "chunk_overlap": 240,
+    "max_file_bytes": 1500000,
+    "extensions": [
+      ".md",
+      ".txt",
+      ".py",
+      ".js",
+      ".ts",
+      ".tsx",
+      ".jsx",
+      ".json",
+      ".bn",
+      ".html",
+      ".css",
+      ".sh"
+    ],
+    "max_chunks_per_run": 500
+  },
+  "security": {
+    "allow_legacy_js": false,
+    "allow_shell_tests": false
+  },
+  "resources": {
+    "max_db_mb": 512,
+    "max_event_rows": 5000
+  }
+}

@@ -1,0 +1,97 @@
+[
+  {
+    "path": "MASTER_DRAWING_SYSTEM_V2.pdf",
+    "sha256": "0e03a954d98697f60dcc84137588c3ca7fa657d9dd69d6a53fb6e6c96b61294e",
+    "bytes": 1205057
+  },
+  {
+    "path": "MASTER_SPEC_V2.json",
+    "sha256": "636aa8e865dd558c9aa6c95c2aa88de13970097d78bd3da633b692daf6656e6f",
+    "bytes": 9312
+  },
+  {
+    "path": "README_INGESTION.md",
+    "sha256": "62f138108cee76eca40d67f6a32369d62b72d43131be1c4982a31003ea11a35c",
+    "bytes": 800
+  },
+  {
+    "path": "RUNTIME_MEMORY_V2.txt",
+    "sha256": "c4e0fa8e1c2d6ff670f77dfbbad46f8bed4cce6d9cd5d6f356d16b8c6017abe6",
+    "bytes": 1120
+  },
+  {
+    "path": "TRAINING_CURRICULUM_V2.md",
+    "sha256": "70c76b7f2d5a66a2e46bdcab0fdc998000453424f153a2e1c031eb3a455b7b02",
+    "bytes": 889
+  },
+  {
+    "path": "references/2472412.png",
+    "sha256": "bd987a3775ff1704f3b97a92d1568d7005d8fea80d8c55211c3f572e00eaa078",
+    "bytes": 305837
+  },
+  {
+    "path": "references/2506289.png",
+    "sha256": "568d7b70dc5d0865a876fda16610f94173170dbeb631aee436eb75ce252b4b82",
+    "bytes": 153064
+  },
+  {
+    "path": "references/2506307.png",
+    "sha256": "c888f4b173ba4acd7019baf3310d16a004d193222320f0cf0629825915859b8c",
+    "bytes": 142766
+  },
+  {
+    "path": "visual_plates/01_head_construction.png",
+    "sha256": "36530074158fb994411284bd0122c932c79003689ece8a0edb262a4b2a760976",
+    "bytes": 43512
+  },
+  {
+    "path": "visual_plates/02_face_features.png",
+    "sha256": "843095e2a493b0fdba8672bf805cc52b34b175804e8b8de9f298746dfe17e756",
+    "bytes": 42566
+  },
+  {
+    "path": "visual_plates/03_hair_masses.png",
+    "sha256": "d301285bb488ab3bb09657fdf7de94503157f3e790d0676c690213368a38647f",
+    "bytes": 47560
+  },
+  {
+    "path": "visual_plates/04_horns.png",
+    "sha256": "c06647913c82b5e1cda827906ad18da5550a6e7c550c3e5e92891b9d749d225a",
+    "bytes": 39744
+  },
+  {
+    "path": "visual_plates/05_neck_shoulders.png",
+    "sha256": "b3f380b12a8beaa36e9c761f0eb44a3e63c09075faa64e0d47bab17a00d9b760",
+    "bytes": 36773
+  },
+  {
+    "path": "visual_plates/06_gothic_clothing.png",
+    "sha256": "1d86411b40de49cbeedde9d12502d2675405dab0137d7ac4c2e1e8b5a3fd5876",
+    "bytes": 35170
+  },
+  {
+    "path": "visual_plates/07_stroke_library.png",
+    "sha256": "cb52614e701bb41fc71d196a6db01d287c750daf7a71d7af16115b4da327234e",
+    "bytes": 55397
+  },
+  {
+    "path": "visual_plates/08_shading_lighting.png",
+    "sha256": "f940962ece3ff3b0bed2aafe62667b6d4887df02319eed1ff05dc96803099756",
+    "bytes": 63208
+  },
+  {
+    "path": "visual_plates/09_scene_composition.png",
+    "sha256": "3a11b0cc672a4a4c820b65a0426bf4951b38355697c385a6d5efdcd35f55a75e",
+    "bytes": 40485
+  },
+  {
+    "path": "visual_plates/10_failure_vs_fix.png",
+    "sha256": "60f6279f97de2d6d594318e2ae742772345ac383fd22f2e195493f6e86c643dc",
+    "bytes": 44615
+  },
+  {
+    "path": "visual_plates/11_checkpoint_map.png",
+    "sha256": "e06de3ca5ec37585a0abcb49fc0bae84b70afcab75f2e1086859f15623b2683a",
+    "bytes": 59445
+  }
+]

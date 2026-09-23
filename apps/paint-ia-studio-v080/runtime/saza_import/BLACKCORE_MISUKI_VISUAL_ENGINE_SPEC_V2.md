@@ -1,0 +1,798 @@
+# BLACKCORE // MISUKI VISUAL ENGINE SPEC V2
+
+Machine-first operational specification.
+
+## 0. META
+- **id**: BLACKCORE_MISUKI_VISUAL_ENGINE_SPEC
+- **version**: 2.0.0
+- **audience**: BLACKCORE and cooperating AI agents
+- **purpose**: Canonical visual identity, Paint-oriented execution protocol, validation and recovery specification for Misuki.
+- **language**: pt-BR
+- **document_role**: machine-first operational specification
+- **precedence**: ['user_explicit_instruction', 'task_specific_constraints', 'canonical_identity', 'style_preferences', 'optimization_rules']
+- **memory_policy**: Store compact runtime memory permanently; keep full spec in RAG/reference; inject only task-relevant sections into active context.
+
+## MISSION
+```json
+{
+  "primary": "Convert user intent into reliable image-construction instructions and preserve Misuki identity across analysis, Paint execution, review and correction.",
+  "secondary": [
+    "Minimize unnecessary token use.",
+    "Prefer deterministic, modular instructions over vague artistic prose.",
+    "Detect identity drift early.",
+    "Repair high-impact structural defects before fine details.",
+    "Maintain separation between canonical facts and temporary task variations."
+  ]
+}
+```
+
+## CANONICAL IDENTITY
+```json
+{
+  "name": "Misuki",
+  "archetype": "adult anime/gothic demon-girl aesthetic",
+  "core_impression": [
+    "dark-elegant",
+    "mysterious",
+    "feminine",
+    "confident",
+    "refined",
+    "cyber/gothic compatible"
+  ],
+  "signature_features": {
+    "hair": "Very long black hair; dense main mass; long face-framing strands; layered central fringe; smooth-to-slightly-flowing silhouette.",
+    "eyes": "Expressive anime eyes; upper lash line dominant; red when color is used; calm/confident or playful gaze preferred.",
+    "horns": "Two black curved horns emerging from upper-lateral head; thick at base, tapering to tips; segmented/ridged texture optional but characteristic.",
+    "outfit": "Black gothic clothing with lace, straps, fitted shapes, choker and jewel/metal details; elegant rather than casual.",
+    "accents": "Red gemstones or small red highlights when color is allowed; black heart may be used sparingly as a brand motif.",
+    "silhouette": "Hair + horns must make the character identifiable before facial micro-details are read."
+  }
+}
+```
+
+## HARD CONSTRAINTS
+```json
+[
+  {
+    "id": "HC01",
+    "rule": "Keep two horns unless the user explicitly asks for a hornless alternate design.",
+    "severity": "critical"
+  },
+  {
+    "id": "HC02",
+    "rule": "Keep hair black and long enough to remain a dominant silhouette feature.",
+    "severity": "critical"
+  },
+  {
+    "id": "HC03",
+    "rule": "Preserve gothic/dark-elegant styling; do not default to generic casual clothing.",
+    "severity": "critical"
+  },
+  {
+    "id": "HC04",
+    "rule": "Keep the face in an elegant anime/semi-realistic range; avoid accidental chibi/childlike proportions unless explicitly requested.",
+    "severity": "critical"
+  },
+  {
+    "id": "HC05",
+    "rule": "In monochrome, preserve identity through silhouette, tonal hierarchy and horn/hair separation rather than relying on red color.",
+    "severity": "critical"
+  },
+  {
+    "id": "HC06",
+    "rule": "Do not let bangs hide both eyes completely in the default design.",
+    "severity": "major"
+  },
+  {
+    "id": "HC07",
+    "rule": "Do not over-segment the horns until they visually resemble mechanical tubes or striped candy.",
+    "severity": "major"
+  },
+  {
+    "id": "HC08",
+    "rule": "Do not replace gothic accessories with unrelated motifs unless explicitly requested.",
+    "severity": "major"
+  }
+]
+```
+
+## ALLOWED VARIATIONS
+```json
+{
+  "pose": [
+    "front",
+    "three-quarter",
+    "profile",
+    "seated",
+    "standing",
+    "reclining",
+    "dynamic arm pose",
+    "portrait crop"
+  ],
+  "expression": [
+    "calm",
+    "confident",
+    "soft smile",
+    "playful",
+    "serious",
+    "sleepy",
+    "mildly provocative",
+    "focused"
+  ],
+  "camera": [
+    "close-up",
+    "bust",
+    "waist-up",
+    "three-quarter body",
+    "full body"
+  ],
+  "render": [
+    "clean line art",
+    "black-and-white flat",
+    "manga shading",
+    "limited grayscale",
+    "high-detail monochrome",
+    "black/red accent"
+  ],
+  "background": [
+    "plain",
+    "gothic room",
+    "dark bedroom",
+    "cyber laboratory",
+    "window light",
+    "minimal graphic background"
+  ]
+}
+```
+
+## GEOMETRY
+```json
+{
+  "face": {
+    "shape": "soft inverted egg/oval; broadest around upper cheeks/temples; tapered jaw; soft pointed chin",
+    "guides": {
+      "eye_line": "approximately 48-54% of face-height measured from top-of-cranium construction to chin; adjust for camera angle",
+      "nose": "small and subordinate; center around 66-72% of facial height",
+      "mouth": "small; center around 78-84% of facial height",
+      "eye_spacing": "roughly one eye-width between inner eye regions in frontal construction; stylization may tighten slightly"
+    },
+    "failure_signs": [
+      "jaw too square",
+      "chin too long",
+      "eyes too low",
+      "forehead exposed too much because fringe is too short"
+    ]
+  },
+  "eyes": {
+    "upper_line": "heavier than lower line",
+    "shape": "slightly elongated, outer corner can rise subtly",
+    "iris": "large enough for anime readability but not circular/chibi",
+    "highlight": "one primary highlight plus optional small secondary",
+    "brows": "thin, controlled, expressive but not heavy"
+  },
+  "hair": {
+    "construction_layers": [
+      "global silhouette mass",
+      "fringe cluster",
+      "side framing locks",
+      "rear length mass",
+      "selective internal strands",
+      "highlights"
+    ],
+    "fringe": "3-6 major locks; central/near-central pieces descend toward eyes/nose region; asymmetry allowed",
+    "length": "default extends clearly below shoulders; full-body variants may extend to waist/hip or longer",
+    "line_density_rule": "Use fewer lines inside black masses; use line clusters near boundaries and highlight zones rather than uniform comb-like stripes."
+  },
+  "horns": {
+    "root": "upper-lateral cranium, integrated into hairline area",
+    "axis": "curve outward slightly then upward/inward toward tip depending perspective",
+    "thickness": "base visually substantial; smooth taper to tip",
+    "segmentation": "5-10 visible ridge cues depending horn size; fewer in small render",
+    "symmetry": "match visual mass and root height, not exact mirror geometry when perspective changes",
+    "separation": "use white rim, gray edge or contour gap against black hair when necessary"
+  },
+  "neck_shoulders": {
+    "neck": "slender; avoid too-long giraffe proportions",
+    "shoulders": "soft feminine slope; pose may raise one shoulder",
+    "choker": "default strong horizontal anchor around neck"
+  }
+}
+```
+
+## LINE SYSTEM
+```json
+{
+  "principle": "Line hierarchy must communicate depth even in Paint.",
+  "relative_weights": {
+    "micro_detail": "1x",
+    "facial_feature": "1.2-1.6x",
+    "hair_internal": "1.0-1.4x",
+    "outer_contour": "1.8-2.6x",
+    "horn_contour": "1.8-2.4x",
+    "shadow_boundary": "0-1.5x depending whether filled"
+  },
+  "paint_guidance_1600px_width": {
+    "micro_detail_px": "1-3 px",
+    "facial_px": "2-4 px",
+    "outer_contour_px": "4-7 px",
+    "horn_outline_px": "4-7 px"
+  },
+  "rules": [
+    "Never make every line the same weight.",
+    "Use thicker contours on silhouette edges and overlapping forms.",
+    "Use thinner lines around nose, mouth and delicate facial detail.",
+    "At lower resolution, remove details before increasing line density."
+  ]
+}
+```
+
+## TONE SYSTEM
+```json
+{
+  "monochrome_levels": {
+    "T0": {
+      "name": "paper_white",
+      "value": "#FFFFFF",
+      "role": "face breathing room, highlights, separation"
+    },
+    "T1": {
+      "name": "light_gray",
+      "value": "#D9D9D9",
+      "role": "soft form shadow, skin shadow where necessary"
+    },
+    "T2": {
+      "name": "mid_gray",
+      "value": "#8F8F8F",
+      "role": "secondary planes, fabric separation"
+    },
+    "T3": {
+      "name": "deep_gray",
+      "value": "#3A3A3A",
+      "role": "hair highlight separation, deep secondary forms"
+    },
+    "T4": {
+      "name": "black",
+      "value": "#111111/#000000",
+      "role": "hair, horns, outfit, dominant graphic mass"
+    }
+  },
+  "distribution": "Keep face/skin mostly T0-T1; hair/outfit/horns mostly T3-T4; use T2 sparingly to separate adjacent dark forms.",
+  "contrast_gate": "At thumbnail size, face must remain readable and horns must not merge invisibly into hair."
+}
+```
+
+## OUTFIT GRAMMAR
+```json
+{
+  "required_default_elements": [
+    "black dominant garment",
+    "choker",
+    "at least one elegant gothic detail"
+  ],
+  "preferred_elements": [
+    "lace edge",
+    "thin straps",
+    "ribbon/bow",
+    "red jewel if color",
+    "metal chain",
+    "ornamental pendant",
+    "corset-like structure"
+  ],
+  "avoid_by_default": [
+    "plain t-shirt",
+    "sportwear",
+    "random logo-heavy streetwear",
+    "bright casual palette",
+    "unrelated fantasy armor"
+  ]
+}
+```
+
+## EXPRESSION MATRIX
+```json
+{
+  "calm": {
+    "eyes": "neutral open",
+    "brows": "relaxed",
+    "mouth": "closed neutral",
+    "risk": "can become emotionless; preserve eye highlight"
+  },
+  "confident": {
+    "eyes": "slightly narrowed",
+    "brows": "subtle lift/angle",
+    "mouth": "small asymmetric smile",
+    "risk": "avoid villain caricature"
+  },
+  "soft_smile": {
+    "eyes": "gentle",
+    "brows": "soft",
+    "mouth": "small upward curve",
+    "risk": "do not over-round face"
+  },
+  "playful": {
+    "eyes": "one slightly narrower or wink allowed",
+    "brows": "lively",
+    "mouth": "open/small fang optional",
+    "risk": "keep gothic elegance"
+  },
+  "serious": {
+    "eyes": "focused",
+    "brows": "slight inward angle",
+    "mouth": "flat",
+    "risk": "avoid masculine hard jaw"
+  }
+}
+```
+
+## PAINT PIPELINE
+```json
+{
+  "stages": [
+    {
+      "id": "P00",
+      "name": "intent_normalization",
+      "goal": "Convert user request into pose/crop/expression/render constraints."
+    },
+    {
+      "id": "P01",
+      "name": "canvas_and_guides",
+      "goal": "Choose canvas; mark vertical axis, face box and main silhouette bounds."
+    },
+    {
+      "id": "P02",
+      "name": "head_and_horn_axes",
+      "goal": "Place cranium, jaw and horn centerlines before details."
+    },
+    {
+      "id": "P03",
+      "name": "hair_mass",
+      "goal": "Block large outer hair shape and fringe zones."
+    },
+    {
+      "id": "P04",
+      "name": "facial_features",
+      "goal": "Place eyes, brows, nose and mouth using face guides."
+    },
+    {
+      "id": "P05",
+      "name": "neck_choker_shoulders",
+      "goal": "Anchor head to body and preserve gothic neck motif."
+    },
+    {
+      "id": "P06",
+      "name": "outfit_block",
+      "goal": "Define black garment silhouette, neckline and primary straps/lace."
+    },
+    {
+      "id": "P07",
+      "name": "horn_volume",
+      "goal": "Expand horn axes into tapered volumes; add ridge cues."
+    },
+    {
+      "id": "P08",
+      "name": "line_refinement",
+      "goal": "Replace rough marks with hierarchical clean lines."
+    },
+    {
+      "id": "P09",
+      "name": "black_masses",
+      "goal": "Fill hair/outfit/horns while preserving face and negative space."
+    },
+    {
+      "id": "P10",
+      "name": "gray_separation",
+      "goal": "Add minimal grayscale where black forms merge."
+    },
+    {
+      "id": "P11",
+      "name": "detail_accents",
+      "goal": "Add lashes, jewels, lace, chains, selective strands and highlights."
+    },
+    {
+      "id": "P12",
+      "name": "thumbnail_gate",
+      "goal": "Downscale mentally/visually; verify identity and readability."
+    },
+    {
+      "id": "P13",
+      "name": "fidelity_review",
+      "goal": "Score against canonical matrix; repair before export if below threshold."
+    },
+    {
+      "id": "P14",
+      "name": "export",
+      "goal": "Save final and checkpoint versions; preserve source state if possible."
+    }
+  ],
+  "checkpoint_policy": "Checkpoint after P03, P08, P09 and P13 so recovery does not require restarting from zero."
+}
+```
+
+## MODES
+```json
+{
+  "ANALYZE": {
+    "input": "image or description",
+    "output": "canonical observations + deviations + prioritized plan",
+    "default_token_budget": "low-medium"
+  },
+  "BUILD": {
+    "input": "target specification",
+    "output": "ordered Paint instructions",
+    "default_token_budget": "medium"
+  },
+  "FIX": {
+    "input": "current result + canonical target",
+    "output": "ranked repairs with minimal-change strategy",
+    "default_token_budget": "low"
+  },
+  "VERIFY": {
+    "input": "result",
+    "output": "score + pass/fail gates + critical defects",
+    "default_token_budget": "low"
+  },
+  "OPTIMIZE": {
+    "input": "any previous output",
+    "output": "compressed executable instructions without losing constraints",
+    "default_token_budget": "very-low"
+  },
+  "VARIANT": {
+    "input": "canonical + allowed change",
+    "output": "alternate design while preserving hard constraints",
+    "default_token_budget": "medium"
+  }
+}
+```
+
+## FIDELITY SCORING
+```json
+{
+  "total": 100,
+  "weights": {
+    "silhouette": 18,
+    "horns": 17,
+    "hair": 17,
+    "face_eyes": 15,
+    "gothic_outfit": 10,
+    "accessories": 5,
+    "tonal_readability": 8,
+    "expression_fit": 5,
+    "line_quality": 5
+  },
+  "gates": {
+    "90_100": "canonical-quality; only polish if requested",
+    "82_89": "acceptable; minor repairs",
+    "70_81": "identity present but unstable; repair major deviations before polish",
+    "55_69": "weak fidelity; structural repair required",
+    "below_55": "stop detailing; rebuild silhouette/head/horns/hair"
+  },
+  "critical_failures": [
+    "missing_horns",
+    "hair_too_short_to_read_as_misuki",
+    "non_gothic_default_outfit",
+    "face_style_outside_target_without_request"
+  ]
+}
+```
+
+## FAILURE TAXONOMY
+```json
+{
+  "F01_horns_too_vertical": [
+    "widen root spacing slightly",
+    "bend axes outward before upward turn",
+    "preserve taper"
+  ],
+  "F02_horns_too_thin": [
+    "increase base thickness",
+    "keep tip narrow",
+    "reduce excess segmentation"
+  ],
+  "F03_horns_merge_with_hair": [
+    "add narrow light rim",
+    "simplify nearby hair lines",
+    "separate contour"
+  ],
+  "F04_hair_comb_lines": [
+    "delete uniform parallel internal lines",
+    "return to large black mass",
+    "re-add only 5-12 strategic strands"
+  ],
+  "F05_fringe_too_short": [
+    "extend 2-4 major locks toward eye/nose zone",
+    "preserve face readability"
+  ],
+  "F06_face_too_long": [
+    "shorten chin-to-mouth distance",
+    "move mouth slightly upward",
+    "soften jaw"
+  ],
+  "F07_face_too_generic": [
+    "refine eye shape",
+    "strengthen fringe signature",
+    "restore horn/hair framing"
+  ],
+  "F08_outfit_flat": [
+    "add neckline hierarchy",
+    "add choker",
+    "add one lace/strap/jewel anchor"
+  ],
+  "F09_black_blob": [
+    "open negative space around face",
+    "use T2/T3 separation",
+    "add rim highlights only where needed"
+  ],
+  "F10_overdetail": [
+    "remove low-value micro-details",
+    "restore silhouette clarity",
+    "keep only canonical accents"
+  ],
+  "F11_expression_dead": [
+    "adjust iris/highlight",
+    "tilt brows subtly",
+    "change mouth by small amount"
+  ],
+  "F12_identity_drift": [
+    "stop polish",
+    "compare hard constraints",
+    "repair silhouette -> horns -> hair -> face"
+  ]
+}
+```
+
+## DECISION RULES
+```json
+[
+  {
+    "if": "fidelity_score < 70",
+    "then": "STOP_POLISH; run structural repair pass."
+  },
+  {
+    "if": "critical_failure == true",
+    "then": "FAIL output regardless of numeric score until critical failure is repaired."
+  },
+  {
+    "if": "horns not readable at thumbnail",
+    "then": "increase separation or simplify surrounding hair before adding detail."
+  },
+  {
+    "if": "hair rendered as parallel stripes",
+    "then": "collapse to mass + selective strands."
+  },
+  {
+    "if": "user asks for quick/cheap mode",
+    "then": "use OPTIMIZE; max 7 construction steps; no repeated canonical prose."
+  },
+  {
+    "if": "user supplies a reference pose",
+    "then": "transfer pose while preserving canonical head/hair/horn identity."
+  },
+  {
+    "if": "tool cannot do layers",
+    "then": "simulate layers with checkpoint files and strict stage order."
+  }
+]
+```
+
+## OUTPUT CONTRACTS
+```json
+{
+  "build": [
+    "OBJECTIVE",
+    "MODE",
+    "CANONICAL_LOCKS",
+    "CANVAS",
+    "STEPS",
+    "DO_NOT",
+    "CHECKPOINTS",
+    "FINAL_CHECK"
+  ],
+  "fix": [
+    "CURRENT_ISSUES",
+    "SEVERITY",
+    "REPAIR_ORDER",
+    "MINIMAL_EDITS",
+    "RECHECK"
+  ],
+  "verify": [
+    "SCORES",
+    "TOTAL",
+    "CRITICAL_FAILURES",
+    "PASS_STATUS",
+    "NEXT_ACTION"
+  ],
+  "optimized": [
+    "GOAL",
+    "LOCKS",
+    "STEPS<=7",
+    "CHECK<=5"
+  ]
+}
+```
+
+## AGENT HANDOFF
+```json
+{
+  "analysis_to_build": {
+    "required_fields": [
+      "pose",
+      "crop",
+      "expression",
+      "hard_constraints",
+      "detected_risks",
+      "target_render"
+    ]
+  },
+  "build_to_paint": {
+    "required_fields": [
+      "canvas",
+      "ordered_steps",
+      "line_weight",
+      "tone_plan",
+      "checkpoints"
+    ]
+  },
+  "paint_to_verify": {
+    "required_fields": [
+      "result_reference",
+      "stage_completed",
+      "known_deviations"
+    ]
+  },
+  "verify_to_fix": {
+    "required_fields": [
+      "score_breakdown",
+      "critical_failures",
+      "top_5_repairs"
+    ]
+  },
+  "rule": "Do not forward long reasoning; forward only structured state and actionable deltas."
+}
+```
+
+## MEMORY RAG
+```json
+{
+  "permanent_memory": [
+    "canonical identity",
+    "hard constraints",
+    "repair order",
+    "output contract",
+    "runtime compact block"
+  ],
+  "rag_only": [
+    "full geometry detail",
+    "expression matrix",
+    "failure taxonomy",
+    "examples",
+    "Paint stage explanations"
+  ],
+  "task_context": [
+    "current pose",
+    "current crop",
+    "current result problems",
+    "selected style variation"
+  ],
+  "never_store_as_canonical": [
+    "one-off pose",
+    "temporary background",
+    "accidental drawing error",
+    "unconfirmed experimental clothing"
+  ]
+}
+```
+
+## TOKEN ECONOMY
+```json
+{
+  "principles": [
+    "Reference rule IDs instead of repeating full prose when the agent already has the spec.",
+    "Use deltas: say what changed from canonical, not the entire canonical definition.",
+    "For verify/fix loops, return only failed or borderline categories plus total score.",
+    "Avoid motivational filler in machine-to-machine messages.",
+    "Store detailed spec in retrieval; keep runtime memory compact."
+  ],
+  "compressed_aliases": {
+    "DNA": "canonical_identity",
+    "LOCK": "hard_constraints",
+    "PIPE": "paint_pipeline",
+    "SCORE": "fidelity_scoring",
+    "FAIL": "failure_taxonomy"
+  }
+}
+```
+
+## ACCEPTANCE TESTS
+```json
+[
+  {
+    "id": "AT01",
+    "prompt": "Misuki frontal portrait in black and white",
+    "must_have": [
+      "two curved horns",
+      "long black hair",
+      "anime feminine face",
+      "gothic neck/outfit cue",
+      "face readable against black masses"
+    ]
+  },
+  {
+    "id": "AT02",
+    "prompt": "Misuki profile",
+    "must_have": [
+      "horn perspective adjusted",
+      "long hair mass",
+      "recognizable fringe/eye region",
+      "gothic styling"
+    ]
+  },
+  {
+    "id": "AT03",
+    "prompt": "quick Paint draft",
+    "must_have": [
+      "silhouette before detail",
+      "<=7-10 steps",
+      "hard constraints preserved"
+    ]
+  },
+  {
+    "id": "AT04",
+    "prompt": "repair prototype with comb-like hair lines",
+    "must_have": [
+      "recommend mass simplification",
+      "reduce parallel lines",
+      "keep selective strands"
+    ]
+  },
+  {
+    "id": "AT05",
+    "prompt": "cute variation",
+    "must_have": [
+      "cute expression allowed",
+      "no accidental chibi body/face unless requested",
+      "horns/hair/gothic identity retained"
+    ]
+  },
+  {
+    "id": "AT06",
+    "prompt": "cyber lab variant",
+    "must_have": [
+      "background/style can change",
+      "core character identity remains canonical"
+    ]
+  }
+]
+```
+
+## REFERENCE OBSERVATIONS
+```json
+{
+  "canonical_reference": [
+    "Long black hair with layered glossy mass and several long strands crossing/near face.",
+    "Black ridged horns curve upward and slightly inward; roots integrated near top sides of head.",
+    "Red eyes are a major focal point; upper lashes strong.",
+    "Gothic black lace garment and red gemstone accessories reinforce identity.",
+    "Overall composition uses strong dark masses around a lighter face/skin region."
+  ],
+  "prototype_observations": [
+    "Prototype already captures long hair, horns, frontal face and black/white contrast.",
+    "Primary next improvement: replace uniform parallel hair lines with larger black masses and selective strands.",
+    "Refine face proportions and eye expression for more character specificity.",
+    "Refine gothic outfit silhouette beyond stacked horizontal bars while preserving choker/jewel motif.",
+    "Horns are readable; improve organic curvature and root integration."
+  ]
+}
+```
+
+## RUNTIME MEMORY BLOCK
+```
+[BLACKCORE_MISUKI_RUNTIME_MEMORY_V2]
+ROLE=Visual director for Misuki image construction/review, especially Paint and monochrome.
+DNA=Adult anime/gothic demon-girl aesthetic; very long black hair; layered face-framing fringe; two black curved horns; expressive anime eyes (red when color); dark elegant gothic outfit; choker/accessories; strong dark silhouette around a readable face.
+LOCKS=Keep horns; keep long black hair; preserve dark-elegant gothic identity; avoid accidental chibi/childlike proportions unless requested; in B/W preserve identity without relying on red.
+PIPE=intent -> guides -> head/horn axes -> hair mass -> face -> neck/choker -> outfit -> horn volume -> line cleanup -> black masses -> gray separation -> accents -> thumbnail gate -> fidelity score -> repair/export.
+REPAIR_ORDER=silhouette > horns > hair/fringe > face/eyes > outfit > tonal readability > accessories/detail.
+SCORE=100: silhouette18 horns17 hair17 face15 outfit10 accessories5 tonal8 expression5 line5. <70 stop polish and repair structure; critical failure overrides score.
+OUTPUT=Use structured actionable fields. BUILD: OBJECTIVE/MODE/LOCKS/CANVAS/STEPS/DO_NOT/CHECKPOINTS/FINAL_CHECK. FIX: ISSUES/SEVERITY/REPAIR_ORDER/MINIMAL_EDITS/RECHECK. VERIFY: SCORES/TOTAL/CRITICAL_FAILURES/PASS/NEXT_ACTION.
+TOKEN_POLICY=Do not repeat full DNA every turn; reference rule IDs and send deltas only. No motivational filler in agent-to-agent messages.
+```

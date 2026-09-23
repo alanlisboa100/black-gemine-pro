@@ -15,7 +15,10 @@ secrets.json
 *.env
 auth-profiles/
 credentials*
-*token*
+*.token
+*token.json
+*tokens.json
+!src/**/tokens.js
 id_rsa*
 *.p12
 

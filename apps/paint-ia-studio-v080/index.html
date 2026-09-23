@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#05050b">
+    <title>🖤 BLACK PAINT STUDIO // v0.8.0</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <header class="top-bar">
+            <div class="logo-area">
+                <span class="cyber-badge">v0.8.0 CORE</span>
+                <h1>BLACK<span>PAINT</span> STUDIO</h1>
+            </div>
+            <div class="top-actions">
+                <button id="btn-undo" title="Desfazer (Ctrl+Z)" class="btn-icon">↩️</button>
+                <button id="btn-redo" title="Refazer (Ctrl+Y)" class="btn-icon">↪️</button>
+                <button id="btn-clear" title="Limpar Tela" class="btn-icon danger">🗑️</button>
+                <button id="btn-analyze" title="Analisar o canvas com o Critic Agent" class="btn-pill accent">🔎 Critic</button>
+                <button id="btn-export-bn" title="Exportar para Black Numbers" class="btn-pill accent">👁️ BN Vision</button>
+                <button id="btn-save-phone" title="Salvar no Celular / Download" class="btn-pill primary">💾 Salvar PNG</button>
+            </div>
+        </header>
+
+        <main class="workspace">
+            <aside class="sidebar tools-panel">
+                <div class="section-title">FERRAMENTAS</div>
+                <div class="tools-grid">
+                    <button class="tool-btn active" data-tool="brush" title="Pincel Normal">🖌️ Pincel</button>
+                    <button class="tool-btn" data-tool="human" title="Traço orgânico com micro-variação">✍️ Human</button>
+                    <button class="tool-btn" data-tool="ink" title="Pincel caligráfico">🖋️ Ink</button>
+                    <button class="tool-btn" data-tool="smudge" title="Mistura / Smudge">🫧 Smudge</button>
+                    <button class="tool-btn" data-tool="neon" title="Pincel Neon Brilhante">✨ Neon</button>
+                    <button class="tool-btn" data-tool="matrix" title="Chuva Matrix">🌧️ Matrix</button>
+                    <button class="tool-btn" data-tool="particles" title="Pincel de Partículas">🌌 Partículas</button>
+                    <button class="tool-btn" data-tool="symmetry" title="Caleidoscópio 8x">🪞 Simetria</button>
+                    <button class="tool-btn" data-tool="spray" title="Spray / Aerógrafo">💨 Spray</button>
+                    <button class="tool-btn" data-tool="eraser" title="Borracha">🧽 Borracha</button>
+                    <button class="tool-btn" data-tool="fill" title="Balde de Tinta">🪣 Preencher</button>
+                </div>
+
+                <div class="section-title">FORMAS</div>
+                <div class="tools-grid mini">
+                    <button class="tool-btn" data-tool="line">╱ Linha</button>
+                    <button class="tool-btn" data-tool="rect">▭ Caixa</button>
+                    <button class="tool-btn" data-tool="circle">◯ Círculo</button>
+                    <button class="tool-btn" data-tool="star">★ Estrela</button>
+                </div>
+
+                <div class="section-title">BLACK CORE VISUAL ENGINE</div>
+                <div class="ai-panel">
+                    <label for="ai-prompt">Prompt</label>
+                    <textarea id="ai-prompt" rows="4" maxlength="4000" placeholder="Ex.: garota gótica anime, cabelo longo, chifres, pose delicada, iluminação vermelha cinematográfica"></textarea>
+
+                    <div class="ai-row">
+                        <div class="ai-field">
+                            <label for="preset-selector">Preset</label>
+                            <select id="preset-selector" class="cyber-select">
+                                <option value="F">F — Professional Organic</option>
+                                <option value="D" selected>D — Gothic Pastel Fusion</option>
+                                <option value="B">B — Paint Retro Interface</option>
+                                <option value="A">A — Soft Sketch Base</option>
+                                <option value="C">C — Soft Render Delicado</option>
+                                <option value="E">E — Production Polish Light</option>
+                            </select>
+                        </div>
+                        <div class="ai-field">
+                            <label for="mode-selector">Modo</label>
+                            <select id="mode-selector" class="cyber-select">
+                                <option value="auto" selected>Auto</option>
+                                <option value="character">Personagem</option>
+                                <option value="environment">Cenário</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="ai-row">
+                        <div class="ai-field">
+                            <label for="seed-input">Seed</label>
+                            <input id="seed-input" class="cyber-input" inputmode="numeric" placeholder="auto">
+                        </div>
+                        <div class="ai-field">
+                            <label for="detail-input">Detalhe <span id="detail-val">80%</span></label>
+                            <input type="range" id="detail-input" min="20" max="100" value="80">
+                        </div>
+                    </div>
+
+                    <div class="ai-row">
+                        <div class="ai-field">
+                            <label for="scenario-selector">Cenário</label>
+                            <select id="scenario-selector" class="cyber-select">
+                                <option value="auto" selected>Auto / Studio mínimo</option>
+                                <option value="minimal_studio">Studio minimalista</option>
+                                <option value="gothic_bedroom">Quarto gótico</option>
+                                <option value="moonlit_cathedral">Catedral ao luar</option>
+                                <option value="cyber_rain_city">Cidade cyber na chuva</option>
+                                <option value="occult_library">Biblioteca oculta</option>
+                                <option value="dark_rose_garden">Jardim de rosas escuras</option>
+                                <option value="throne_chamber">Salão do trono</option>
+                                <option value="neon_lab">Laboratório neon</option>
+                                <option value="moon_balcony">Varanda ao luar</option>
+                                <option value="forest_shrine">Santuário na floresta</option>
+                            </select>
+                        </div>
+                        <div class="ai-field">
+                            <label for="scene-strength-input">Cenário <span id="scene-strength-val">65%</span></label>
+                            <input type="range" id="scene-strength-input" min="0" max="100" value="65">
+                        </div>
+                    </div>
+
+                    <button id="btn-gen-pro" class="btn-gen accent">🧠 Gerar com 3 Agentes</button>
+                    <div id="engine-status" class="engine-status" aria-live="polite">Director → Stroke/Builder → Critic</div>
+                </div>
+
+                <div class="section-title">SMART PHOTO EDITOR</div>
+                <div class="ai-panel photo-panel">
+                    <input id="photo-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+                    <div class="ai-row">
+                        <div class="ai-field">
+                            <label for="photo-profile">Perfil</label>
+                            <select id="photo-profile" class="cyber-select">
+                                <option value="auto" selected>Auto Adaptativo</option>
+                                <option value="natural">Natural</option>
+                                <option value="portrait">Retrato</option>
+                                <option value="artwork">Arte / Anime</option>
+                                <option value="night">Noturno</option>
+                            </select>
+                        </div>
+                        <div class="ai-field">
+                            <label for="photo-strength">Força <span id="photo-strength-val">100%</span></label>
+                            <input type="range" id="photo-strength" min="35" max="150" value="100">
+                        </div>
+                    </div>
+                    <div class="photo-actions">
+                        <button id="btn-photo-open" class="btn-gen">📂 Abrir Foto</button>
+                        <button id="btn-photo-analyze" class="btn-gen">🧠 Analisar</button>
+                    </div>
+                    <button id="btn-photo-auto" class="btn-gen accent">✨ Auto Melhorar Inteligente</button>
+                    <div class="photo-actions">
+                        <button id="btn-photo-like" class="btn-gen mini-action" disabled>👍 Ficou melhor</button>
+                        <button id="btn-photo-dislike" class="btn-gen mini-action" disabled>👎 Reverter aprendizado</button>
+                    </div>
+                    <button id="btn-memory-status" class="btn-gen mini-action">🧠 Visual Memory</button>
+                    <div id="photo-status" class="engine-status">Analyzer → Editor → Enhancement → Critic → Memory</div>
+                </div>
+
+                <div class="section-title">GERADORES LOCAIS RÁPIDOS</div>
+                <div class="gen-buttons">
+                    <button id="btn-gen-city" class="btn-gen">🌆 Cyber City</button>
+                    <button id="btn-gen-neural" class="btn-gen">🧠 Neural Net</button>
+                    <button id="btn-gen-fractal" class="btn-gen">🌀 Fractal Neon</button>
+                    <button id="btn-gen-matrix" class="btn-gen">💚 Matrix Rain Full</button>
+                </div>
+
+                <div class="section-title">TAMANHO & BRILHO</div>
+                <div class="control-group">
+                    <label for="brush-size">Tamanho: <span id="size-val">8px</span></label>
+                    <input type="range" id="brush-size" min="1" max="80" value="8">
+                </div>
+                <div class="control-group">
+                    <label for="glow-size">Brilho Neon: <span id="glow-val">15</span></label>
+                    <input type="range" id="glow-size" min="0" max="50" value="15">
+                </div>
+
+                <div class="section-title">CORES CYBER</div>
+                <div class="color-palette" id="quick-colors">
+                    <button class="color-swatch active" style="background:#00ffcc" data-color="#00ffcc"></button>
+                    <button class="color-swatch" style="background:#ff007f" data-color="#ff007f"></button>
+                    <button class="color-swatch" style="background:#9d00ff" data-color="#9d00ff"></button>
+                    <button class="color-swatch" style="background:#00f0ff" data-color="#00f0ff"></button>
+                    <button class="color-swatch" style="background:#ffff00" data-color="#ffff00"></button>
+                    <button class="color-swatch" style="background:#ff3300" data-color="#ff3300"></button>
+                    <button class="color-swatch" style="background:#ffffff" data-color="#ffffff"></button>
+                    <button class="color-swatch" style="background:#0a0a12" data-color="#0a0a12"></button>
+                </div>
+                <div class="custom-color-picker">
+                    <label for="color-picker">Cor Personalizada:</label>
+                    <input type="color" id="color-picker" value="#00ffcc">
+                </div>
+            </aside>
+
+            <section class="canvas-container">
+                <div class="canvas-wrapper" id="canvas-wrapper">
+                    <canvas id="paint-canvas"></canvas>
+                    <canvas id="overlay-canvas"></canvas>
+                </div>
+            </section>
+        </main>
+
+        <footer class="bottom-bar">
+            <div class="status-item"><span class="dot"></span> Black Core Visual Online</div>
+            <div class="status-item" id="coords-display">X: 0, Y: 0</div>
+            <div class="status-item" id="res-display">1024 x 1024</div>
+            <div class="status-item"><span id="active-tool-display">FERRAMENTA: Pincel</span></div>
+        </footer>
+
+        <div id="modal" class="modal hidden">
+            <div class="modal-content">
+                <h3 id="modal-title">⚡ Black Core</h3>
+                <div id="modal-body"></div>
+                <div class="modal-actions">
+                    <button id="modal-close" class="btn-pill">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="brushes.js"></script>
+    <script src="filters.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

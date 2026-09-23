@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#09090f">
+    <title>BLACKCORE Creative Lab</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#lab">Skip to lab</a>
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="BLACKCORE Creative Lab home">
+        <span class="brand-mark" aria-hidden="true">B</span>
+        <span>BLACKCORE</span><small>CREATIVE LAB</small>
+      </a>
+      <nav aria-label="Lab sections">
+        <a href="#cube">Cube</a>
+        <a href="#village">Village</a>
+        <a href="#hearts">Hearts</a>
+        <a href="#stream">Code</a>
+        <a href="#game">Game</a>
+      </nav>
+    </header>
+
+    <main id="lab">
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <p class="eyebrow">LOCAL CREATIVE VALIDATION</p>
+        <h1 id="hero-title">Motion that feels intentional.</h1>
+        <p class="hero-copy">A dependency-free test bed for a responsive site, an animated village, a rotating 3D cube, particles, live code and a keyboard/touch game.</p>
+        <div class="hero-actions">
+          <button class="button button-primary" id="motion-toggle" type="button" aria-pressed="false">Pause motion</button>
+          <button class="button button-secondary" id="motion-reset" type="button">Reset lab</button>
+        </div>
+        <div class="status-row">
+          <p class="status-line" id="motion-status" role="status">Motion is running. All demos are local.</p>
+          <span class="health-badge" id="frame-health" aria-label="Animation performance">Measuring FPS…</span>
+        </div>
+      </section>
+
+      <section class="panel village-panel" id="village" aria-labelledby="village-title">
+        <div class="panel-heading">
+          <div>
+            <p class="panel-kicker">01 / WORLD MOTION</p>
+            <h2 id="village-title">Luminous village</h2>
+          </div>
+          <button class="icon-button" id="village-time" type="button" aria-pressed="false">Switch to night</button>
+        </div>
+        <canvas id="village-canvas" width="1180" height="560" role="img" aria-label="Animated village with houses, trees, clouds, smoke, fireflies and a moving traveler"></canvas>
+        <div class="village-metrics" aria-live="polite">
+          <span>Cycle <strong id="village-cycle">DAY</strong></span>
+          <span>Homes <strong>7</strong></span>
+          <span>Fireflies <strong id="firefly-count">0</strong></span>
+        </div>
+        <p class="panel-note">Layered parallax, day/night colour interpolation and ambient motion, with automatic pause under reduced-motion preference.</p>
+      </section>
+
+      <section class="lab-grid" aria-label="Creative experiments">
+        <article class="panel cube-panel" id="cube" aria-labelledby="cube-title">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">02 / CANVAS</p>
+              <h2 id="cube-title">Rotating 3D cube</h2>
+            </div>
+            <label class="range-label" for="cube-speed">Speed <output id="cube-speed-value">1.0×</output></label>
+          </div>
+          <canvas id="cube-canvas" width="760" height="460" tabindex="0" role="img" aria-label="An interactive three-dimensional BLACKCORE cube" aria-describedby="cube-note"></canvas>
+          <input id="cube-speed" class="range" type="range" min="0" max="2" step="0.1" value="1" aria-label="Cube rotation speed">
+          <p class="panel-note" id="cube-note">Drag, swipe, or use the arrow keys to inspect every side. Canvas projection needs no WebGL package.</p>
+        </article>
+
+        <article class="panel hearts-panel" id="hearts" aria-labelledby="hearts-title">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">03 / PARTICLES</p>
+              <h2 id="hearts-title">Heart pulse</h2>
+            </div>
+            <button class="icon-button" id="heart-burst" type="button" aria-label="Create a burst of hearts">+ Burst</button>
+          </div>
+          <canvas id="heart-canvas" width="760" height="460" role="img" aria-label="Softly floating animated heart particles"></canvas>
+          <p class="panel-note">A lightweight particle field with an explicit burst interaction.</p>
+        </article>
+      </section>
+
+      <section class="panel code-panel" id="stream" aria-labelledby="stream-title">
+        <div class="panel-heading">
+          <div>
+            <p class="panel-kicker">04 / TOOL LIFECYCLE</p>
+            <h2 id="stream-title">Code activity stream</h2>
+          </div>
+          <span class="live-pill"><span aria-hidden="true"></span> LOCAL</span>
+        </div>
+        <div class="code-window" id="code-stream" role="log" aria-live="off" aria-label="Simulated BLACKCORE code activity"></div>
+        <p class="panel-note">Compact starts, diffs, tests and completions arrive one at a time—never a frozen blank panel.</p>
+      </section>
+
+      <section class="panel game-panel" id="game" aria-labelledby="game-title">
+        <div class="panel-heading game-heading">
+          <div>
+            <p class="panel-kicker">05 / INTERACTION</p>
+            <h2 id="game-title">Core Catch</h2>
+          </div>
+          <div class="game-stats" aria-live="polite">
+            <span>Score <strong id="score">0</strong></span>
+            <span>Lives <strong id="lives">3</strong></span>
+            <span>Level <strong id="level">1</strong></span>
+          </div>
+        </div>
+        <div class="game-stage">
+          <canvas id="game-canvas" width="960" height="540" role="img" aria-label="Core Catch game. Move the ship to catch falling cores."></canvas>
+          <div class="game-overlay" id="game-overlay" aria-live="polite">
+            <p class="panel-kicker">READY WHEN YOU ARE</p>
+            <p class="overlay-title">Catch the glowing cores.</p>
+            <button class="button button-primary" id="game-start" type="button">Start game</button>
+          </div>
+        </div>
+        <div class="game-footer">
+          <p>Use <kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd> or <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>. On touch, drag inside the game or use the controls.</p>
+          <div class="dpad" role="group" aria-label="Touch game controls">
+            <button type="button" data-direction="up" aria-label="Move up">↑</button>
+            <button type="button" data-direction="left" aria-label="Move left">←</button>
+            <button type="button" data-direction="down" aria-label="Move down">↓</button>
+            <button type="button" data-direction="right" aria-label="Move right">→</button>
+          </div>
+          <button class="text-button" id="game-reset" type="button">Reset score</button>
+        </div>
+      </section>
+    </main>
+
+    <footer>BLACKCORE Native · Creative Lab · Runs entirely in your browser</footer>
+    <script src="app.js"></script>
+  </body>
+</html>

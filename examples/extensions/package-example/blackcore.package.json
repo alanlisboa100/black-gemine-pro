@@ -1,0 +1,10 @@
+{
+  "name": "blackcore-example-package",
+  "version": "1.0.0",
+  "blackcore": {
+    "extensions": ["extensions"],
+    "skills": ["skills"],
+    "prompts": ["prompts"],
+    "themes": ["themes"]
+  }
+}

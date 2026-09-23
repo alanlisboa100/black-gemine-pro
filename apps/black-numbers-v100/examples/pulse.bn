@@ -1,0 +1,13 @@
+node Core : diamond {
+  fill: lime
+  x: 0.5
+  y: 0.5
+  r: 36
+}
+relate Pulse : time -> Core.r {
+  via: 36 + sin(t * 0.0024) * 10
+}
+screen Main {
+  root: Core
+  bg: ink
+}

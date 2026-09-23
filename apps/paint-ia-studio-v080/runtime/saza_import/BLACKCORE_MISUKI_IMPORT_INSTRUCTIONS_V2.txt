@@ -1,0 +1,17 @@
+BLACKCORE // MISUKI VISUAL ENGINE PACK V2
+
+IMPORT ORDER
+1. Index BLACKCORE_MISUKI_VISUAL_ENGINE_SPEC_V2.json as the primary machine-readable spec.
+2. Keep BLACKCORE_MISUKI_VISUAL_ENGINE_SPEC_V2.pdf and .md as long-form RAG/reference documents.
+3. Store only BLACKCORE_MISUKI_RUNTIME_MEMORY_V2.txt in permanent runtime memory.
+4. Do not copy the entire PDF into every prompt/context.
+5. During a task, retrieve only the sections needed for the current mode: ANALYZE, BUILD, FIX, VERIFY, OPTIMIZE or VARIANT.
+
+PRECEDENCE
+user explicit instruction > task-specific constraints > canonical identity > style preferences > optimization rules
+
+RUNTIME RULE
+If fidelity score < 82, repair before export. If <70, stop polish and repair structure. Any critical failure blocks approval regardless of score.
+
+CANONICAL REPAIR ORDER
+silhouette > horns > hair/fringe > face/eyes > outfit > tonal readability > accessories/detail
