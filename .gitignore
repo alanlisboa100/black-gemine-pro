@@ -5,6 +5,8 @@
 
 # --- Segredos, Chaves e Credenciais ---
 .blackcore/x_credentials.json
+.blackcore/google_key_pool.json
+.blackcore/settings.json
 .blackcore/config/
 *.json.key
 *.key
@@ -23,6 +25,8 @@ id_rsa*
 *.p12
 
 # --- Caches e Dependências ---
+apps/paint-ia-studio-v080/gallery/checkpoints/
+apps/paint-ia-studio-v080/gallery/*.png
 .blackcore/cache/
 node_modules/
 .npm/

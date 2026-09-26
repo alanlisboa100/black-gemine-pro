@@ -1,0 +1,36 @@
+#!/data/data/com.termux/files/usr/bin/bash
+
+# BLACKCORE Gatekeeper Authentication
+# Hash SHA-256 da senha de acesso autorizada (981390)
+AUTH_HASH="e668914a1778d7000b03436206d79670700b4cafe2bf057984e6ccf3108acb2f"
+
+if [ -t 0 ]; then
+    echo -e "\033[1;35m╔══════════════════════════════════════════════╗\033[0m"
+    echo -e "\033[1;35m║         🖤 BLACKCORE SECURITY GATE 🖤        ║\033[0m"
+    echo -e "\033[1;35m╚══════════════════════════════════════════════╝\033[0m"
+
+    AUTHENTICATED=0
+    for ATTEMPT in 1 2 3; do
+        read -s -p "🔑 Digite a senha de acesso: " USER_INPUT
+        echo ""
+        INPUT_HASH=$(printf "%s" "$USER_INPUT" | sha256sum | awk '{print $1}')
+        if [ "$INPUT_HASH" = "$AUTH_HASH" ]; then
+            AUTHENTICATED=1
+            break
+        else
+            echo -e "\033[1;31m[✗] Senha incorreta! Tentativa $ATTEMPT de 3.\033[0m"
+        fi
+    done
+
+    if [ "$AUTHENTICATED" -ne 1 ]; then
+        echo -e "\033[1;31m[!] Acesso bloqueado. Bloqueio de segurança ativado.\033[0m"
+        exit 1
+    fi
+
+    # Dispara a Animação Hacker Cyberpunk imediatamente após a senha
+    if [ -f "$HOME/.blackcore/runtime/hacker_boot.py" ]; then
+        python3 "$HOME/.blackcore/runtime/hacker_boot.py"
+    fi
+fi
+
+exec node "$HOME/.blackcore/runtime/bin/blackcore.js" "$@"
