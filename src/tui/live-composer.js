@@ -1,5 +1,5 @@
 import readline from "node:readline";
-import {motionEnabled,motionElapsed} from "./motion.js";
+import {motionEnabled,motionElapsed,toolGlyph} from "./motion.js";
 import path from "node:path";
 import os from "node:os";
 import {c,esc} from "./ansi.js";
@@ -87,7 +87,7 @@ export class LiveComposer{
     if(semantic)return `${semantic[1]}◆ ${semantic[0]}${RESET}  ${FG}${this.phase.label}${RESET}${this.phase.detail?`${DIM} · ${this.phase.detail}${RESET}`:""} ${DIM}· ${elapsed}${RESET}`;
     if(kind==="thinking")return `${MAGENTA}${THINK[this.tick%THINK.length]} THINK${RESET}  ${FG}${this.phase.label}${RESET}${this.phase.detail?`${DIM} · ${this.phase.detail}${RESET}`:""} ${DIM}· ${elapsed}${RESET}  ${MAGENTA}${WAVE[this.tick%WAVE.length]}${RESET}`;
     if(kind==="video")return `${MAGENTA}${VIDEO[this.tick%VIDEO.length]} EDIT${RESET}   ${FG}${this.phase.label||"processing video"}${RESET}${this.phase.detail?`${DIM} · ${this.phase.detail}${RESET}`:""} ${DIM}· ${elapsed}${RESET}`;
-    if(kind==="tools")return `${CYAN}${TOOLS[this.tick%TOOLS.length]} TOOLS${RESET}  ${FG}${this.phase.label}${RESET}${this.phase.detail?`${DIM} · ${this.phase.detail}${RESET}`:""} ${DIM}· ${elapsed}${RESET}  ${CYAN}${WAVE[(this.tick+2)%WAVE.length]}${RESET}`;
+    if(kind==="tools")return `${CYAN}${TOOLS[this.tick%TOOLS.length]} TOOLS${RESET}  ${c(51,toolGlyph(this.phase.label))} ${FG}${this.phase.label}${RESET}${this.phase.detail?`${DIM} · ${this.phase.detail}${RESET}`:""} ${DIM}· ${elapsed}${RESET}  ${CYAN}${WAVE[(this.tick+2)%WAVE.length]}${RESET}`;
     if(kind==="waiting")return `${c(220,"◇ WAIT")}  ${FG}${this.phase.label||"approval"}${RESET} ${DIM}· input required${RESET}`;
     if(kind==="done")return `${GREEN}◆ DONE${RESET}  ${FG}${this.phase.label||"turn complete"}${RESET}`;
     return `${CYAN}◆ WORK${RESET}  ${FG}${this.phase.label||"BLACKCORE working"}${RESET} ${DIM}· ${elapsed}${RESET}`;

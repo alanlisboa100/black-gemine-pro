@@ -14,7 +14,14 @@
     {"id":"zoomin","label":"Zoom para dentro","defaultDuration":0.34},
     {"id":"zoom-face-in-out","label":"Foco no rosto e retorno","defaultDuration":0.72},
     {"id":"circleopen","label":"Abertura circular","defaultDuration":0.46},
-    {"id":"burst","label":"Burst de batida","defaultDuration":0.28}
+    {"id":"circleclose","label":"Fechamento circular CapCut","defaultDuration":0.35},
+    {"id":"burst","label":"Burst de batida","defaultDuration":0.28},
+    {"id":"fadewhite","label":"Flash branco CapCut","defaultDuration":0.22},
+    {"id":"fadefast","label":"Corte ultra rápido CapCut","defaultDuration":0.16},
+    {"id":"hblur","label":"Whip blur dinâmico CapCut","defaultDuration":0.30},
+    {"id":"pixelize","label":"Pixel glitch CapCut","defaultDuration":0.25},
+    {"id":"squeezeh","label":"Squeeze dinâmico CapCut","defaultDuration":0.28},
+    {"id":"zoomout","label":"Zoom reverso CapCut","defaultDuration":0.36}
   ],
   "overlays": [
     {"id":"light-sweep-amber","label":"Varredura âmbar","category":"light","asset":"overlays/effect_1.png","color":"#ff6a32","opacity":0.27,"scale":1.0,"motion":"pan-left","defaultDuration":0.65},

@@ -80,29 +80,6 @@ export class GoogleProvider extends OpenAIProvider{
         this.poolIndex=i+1;this.poolActiveModel=pool[i+1]||null;
       }
     }
-    // Hybrid failover to WaveSpeed (Qwen 3.7 Flash) if Google pool is exhausted
-    const wsCfg=this.cfg.providers?.wavespeed;
-    const hybridModels=this.cfg.providers?.google?.hybridFallbackModels||["qwen/qwen3.7-flash","mistralai/mistral-nemo"];
-    if(wsCfg && this.cfg.providers?.google?.hybridFallback!==false){
-      for(const fallbackModel of hybridModels){
-        try{
-          const wsProvider=new OpenAIProvider(this.cfg,"wavespeed",fallbackModel);
-          const out=await wsProvider.chat(opts);
-          this.poolActiveProvider="wavespeed";
-          this.poolActiveModel=fallbackModel;
-          return {
-            ...out,
-            provider:"wavespeed",
-            model:fallbackModel,
-            pool:true,
-            poolSelected:`${fallbackModel} (WaveSpeed Hybrid Fallback)`,
-            hybridFallback:true
-          };
-        }catch(wsErr){
-          last=wsErr;
-        }
-      }
-    }
     throw last||new Error("Google Free Pool exhausted");
   }
   async chat(opts){

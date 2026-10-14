@@ -11,7 +11,7 @@ Este repositório é a distribuição completa e autônoma do **BLACKCORE**, inc
 1. **🔥 Trio Supremo & Google Elite Pool (`google-free-pool`):**
    - Roteamento e failover automático sem interrupção de sessão: `Gemini 3.8 Flash` → `Gemini 3.7 Flash` → `Gemini 3.6 Flash` → `Gemini 3.5 Flash-Lite`.
    - Resiliente contra erros HTTP 503 (sobrecarga) e 429 (limite de quota).
-   - Suporte a pool de até 4 chaves do Google AI Studio (`GEMINI_API_KEY_1` a `_4`).
+   - Suporte a pool de até 8 chaves do Google AI Studio (`GEMINI_API_KEY` e `_2` a `_8`).
 
 2. **🕷️ Scraper Distribuído Avançado (`web_scraper`):**
    - Extração paralela em massa de conteúdos de múltiplos sites.

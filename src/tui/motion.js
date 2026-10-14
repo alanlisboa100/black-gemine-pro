@@ -11,8 +11,8 @@ export const MOTION = {
   think: ["⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏"],
   // Cyber neon loading pulse
   cyber: ["⣾","⣽","⣻","⢿","⡿","⣟","⣯","⣷"],
-  // Dual-ring tool activity
-  tool: ["◐","◓","◑","◒"],
+  // Dual-ring cyber tool activity (fluid 8-frame orbital)
+  tool: ["⣾","⣽","⣻","⢿","⡿","⣟","⣯","⣷"],
   // Boot fill blocks
   boot: ["░","▒","▓","█","▓","▒"],
   // Soft pulse
@@ -50,12 +50,14 @@ export const TOOL_GLYPHS = {
   grep: "⌕", find: "⌕", repo_map: "⌘", list: "≡", stat: "◌",
   bash: "$", shell: "$", process: "↻", git: "⑂", github: "⑂",
   web_fetch: "↗", web_scraper: "🕷", web_search: "⌕", web_research: "⌕", news_research: "◫",
-  credibility_check: "◉", download: "⇣", delegate: "◇", verify: "✓",
-  audit_report: "◈", vercel: "▲", netlify: "◇", supabase: "▤",
+  credibility_check: "◉", download: "⇣", delegate: "◇", delegate_ready: "◈", verify: "✓",
+  audit_report: "◈", audit: "◈", vercel: "▲", netlify: "◇", supabase: "▤",
   resend: "✉", expo: "◉", eas: "◉", android: "◫", mcp: "⌁",
   sqlite: "🗄", postgres: "⛁", video_editor: "🎬", photo_editor: "🎨",
   outfit_editor: "👕", media: "🎞", browser: "🌐", security_scan: "🛡",
-  agent_control: "⚙", task_graph: "☊"
+  agent_control: "⚙", task_graph: "☊", todo: "☑", package_manager: "📦",
+  process_start: "⚡", process_poll: "↻", process_list: "▤", document: "📄",
+  code_intel: "⚡", knowledge_index: "📚"
 };
 
 export function toolGlyph(name = "") {

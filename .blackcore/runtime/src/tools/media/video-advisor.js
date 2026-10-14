@@ -42,6 +42,7 @@ export function buildVideoAdvice({summary={},analysis={},capabilities={}}={}){
     {id:"rhythm",label:"Beat and movement-aware pacing",recommended:changes.has("rhythm")&&Boolean(rhythm?.bpm),ready:hasAudio,mapsTo:{syncToBeats:true,musicGenre:"auto"}},
     {id:"environment",label:"Adaptive light, water, sky, green and landscape grade",recommended:changes.has("environment"),ready:true,mapsTo:{environmentEnhancement:true}},
     {id:"color",label:"Studio or cinematic color treatment",recommended:true,ready:true,mapsTo:{colorGrade:"choose-style"}},
+    {id:"capcut-style",label:"CapCut dynamic beat transitions, white flash and punch-in",recommended:false,ready:true,mapsTo:{style:"capcut",colorGrade:"capcut-teal-orange"}},
     {id:"audio-master",label:"Audio mastering and peak control",recommended:changes.has("audio-master"),ready:hasAudio,mapsTo:{masterAudio:true}},
     {id:"audio-denoise",label:"Audio noise reduction",recommended:false,ready:hasAudio,mapsTo:{denoiseAudio:true}},
     {id:"stabilize",label:"Camera stabilization",recommended:false,ready:stabilizationReady,requires:stabilizationReady?null:"FFmpeg vidstabdetect and vidstabtransform filters",mapsTo:{action:"stabilize"}},
@@ -56,6 +57,7 @@ export function buildVideoAdvice({summary={},analysis={},capabilities={}}={}){
     {id:"basic",label:"Basic conservative edit",recommended:false,ready:true,arguments:{...common,editLevel:"basic",colorGrade:"natural",masterAudio:false,denoiseAudio:false}},
     {id:"medium",label:"Balanced professional edit",recommended:true,ready:true,arguments:{...common,editLevel:"medium",colorGrade:"studio",masterAudio:false,denoiseAudio:false}},
     {id:"high",label:"High cinematic BLACKCORE edit",recommended:false,ready:true,arguments:{...common,editLevel:"high",colorGrade:"cinematic",masterAudio:true,denoiseAudio:true}},
+    {id:"capcut-viral",label:"CapCut/TikTok viral edit (dynamic cuts, white flash, teal-orange grade and bold captions)",recommended:false,ready:true,arguments:{...common,editLevel:"high",style:"capcut",colorGrade:"capcut-teal-orange",captionStyle:"capcut",aspectRatio:"vertical",reframeMode:"blur"}},
     {id:"music-locked",label:"Visual edit with the original song continuous",recommended:false,ready:hasAudio,requires:hasAudio?null:"embedded source audio",arguments:{...common,editLevel:"medium",colorGrade:"studio",preserveSourceAudio:true,removeSilence:false,masterAudio:false,denoiseAudio:false}},
     {id:"visual-polish",label:"Picture and color only, full duration",recommended:false,ready:true,arguments:{...common,editLevel:"medium",colorGrade:"studio",removeSilence:false,removeBlackFrames:false,transition:"none",preserveSourceAudio:hasAudio}},
     {id:"social-vertical",label:"Vertical social version",recommended:false,ready:true,requires:"approval to change framing",arguments:{...common,editLevel:"medium",colorGrade:"studio",aspectRatio:"vertical",reframeMode:"blur"}}

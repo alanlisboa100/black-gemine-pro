@@ -102,3 +102,11 @@ test('live status avoids duplicate writes and respects reduced motion',()=>{
   try{assert.equal(composer.tick,0);composer.setPhase('waiting','approval');ctl.output.writes=[];composer.render({full:false});assert.equal(ctl.output.writes.length,0);}
   finally{composer.stop();ctl.rl.input.destroy();}
 });
+test('fixed composer handles multi-line paste and bracketed paste without auto-submitting',()=>{
+  const ctl=controller(),composer=new FixedComposer(ctl);composer.start();
+  try{
+    composer.onRawInput("\x1b[200~Hello\nWorld\x1b[201~");
+    assert.equal(composer.chars.join(''),'Hello World');
+    assert.equal(composer.controller.queue.length,0);
+  }finally{composer.stop();ctl.rl.input.destroy();}
+});

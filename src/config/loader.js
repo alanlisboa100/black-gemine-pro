@@ -43,7 +43,7 @@ export function loadConfig(cwd=process.cwd()){
   // Focused provider build: keep cloud providers plus the optional local
   // llama.cpp endpoint. Existing API keys and provider overrides stay intact.
   // including when an older settings.json still contains legacy providers.
-  const allowedProviders=new Set(["openai","deepseek","google","local","wavespeed"]);
+  const allowedProviders=new Set(["openai","deepseek","google","tokenharbor","wavespeed","local"]);
   cfg.providers=Object.fromEntries(Object.entries(cfg.providers||{}).filter(([name])=>allowedProviders.has(name)));
   // Provider catalogs are application-owned, not user-owned. Older settings.json
   // files contain a full snapshot of providers/models, so their model arrays
@@ -55,6 +55,7 @@ export function loadConfig(cwd=process.cwd()){
     if(!fresh)continue;
     cfg.providers[name]={...(current||{}),models:structuredClone(fresh.models||[])};
     if(Array.isArray(fresh.freePoolModels))cfg.providers[name].freePoolModels=[...fresh.freePoolModels];
+    if(Array.isArray(fresh.fastPoolModels))cfg.providers[name].fastPoolModels=[...fresh.fastPoolModels];
     if(Array.isArray(fresh.ecoPoolModels))cfg.providers[name].ecoPoolModels=[...fresh.ecoPoolModels];
   }
   // GOOGLE_KEY_POOL_MIGRATION_8: provider-owned key slot catalog must follow this build.

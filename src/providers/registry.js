@@ -3,6 +3,7 @@ import {DeepSeekProvider} from "./deepseek.js";
 import {GoogleProvider} from "./google.js";
 import {ResponsesProvider} from "./responses.js";
 import {WaveSpeedProvider} from "./wavespeed.js";
+import {TokenHarborProvider} from "./tokenharbor.js";
 
 export class ProviderRegistry{
   constructor(cfg){
@@ -13,6 +14,7 @@ export class ProviderRegistry{
     this.register("deepseek",(p,m)=>new DeepSeekProvider(cfg,p,m));
     this.register("google",(p,m)=>new GoogleProvider(cfg,p,m));
     this.register("wavespeed",(p,m)=>new WaveSpeedProvider(cfg,p,m));
+    this.register("tokenharbor",(p,m)=>new TokenHarborProvider(cfg,p,m));
   }
   register(type,factory){this.factories.set(type,factory);return factory;}
   unregister(type){return this.factories.delete(type);}

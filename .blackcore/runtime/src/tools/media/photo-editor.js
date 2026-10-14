@@ -6,7 +6,8 @@ import {defineTool} from "../registry.js";
 import {available,runCli} from "../common/cli.js";
 import {capture,ensureParent,readable,writable} from "../fs/common.js";
 import {analyzePhotoFrame,buildAutoPhotoPlan,photoCropGeometry} from "./photo-analysis.js";
-import {photoEffectPack,resolvePhotoEffectPreset} from "./photo-effects.js";
+import {photoEffectPack,resolvePhotoEffectPreset,photoEffectPresetTokens} from "./photo-effects.js";
+import {applySupremePipeline,buildSkinMask,hasSupremeArguments,SUPREME_KEYS,SUPREME_DEFAULTS,TONE_CURVES,HSL_BANDS,MAX_ENGINE_PIXELS} from "./photo-supreme.js";
 import {outfitEditorTool} from "./outfit-editor.js";
 import {reportPhotoProgress} from "./photo-progress.js";
 import {resolvePhotoSelection,compositePhotoSelection,verifyPhotoSelection,inspectPhotoSelectionCapabilities} from "./photo-selection.js";
@@ -19,8 +20,9 @@ const OUTPUT_EXTS=new Set([".jpg",".jpeg",".png",".webp",".avif",".heic",".tif",
 const FORMAT_EXT={jpg:".jpg",jpeg:".jpg",png:".png",webp:".webp",avif:".avif",heic:".heic",tiff:".tiff",bmp:".bmp"};
 const BRAND_WATERMARK=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"../../../assets/blackcore-photo-watermark.png");
 const PHOTO_TIMEOUT_MS=45*60*1000;
-const ACTIONS=["list_images","list_effects","inspect","analyze","auto_edit","change_outfit","remove_background","replace_background","crop","resize","rotate","flip","adjust_light","adjust_color","enhance_details","denoise","blur","overlay_text","watermark","convert","compress"];
-const SELECTIVE_ACTIONS=new Set(["auto_edit","adjust_light","adjust_color","enhance_details","denoise","blur"]);
+const ACTIONS=["list_images","list_effects","inspect","analyze","auto_edit","supreme_edit","change_outfit","remove_background","replace_background","crop","resize","rotate","flip","adjust_light","adjust_color","enhance_details","denoise","blur","overlay_text","watermark","convert","compress"];
+const SELECTIVE_ACTIONS=new Set(["auto_edit","supreme_edit","adjust_light","adjust_color","enhance_details","denoise","blur"]);
+const TONE_CURVE_NAMES=Object.keys(TONE_CURVES);
 
 function clamp(value,min,max){return Math.min(max,Math.max(min,value));}
 function round(value,digits=4){return Number((Number(value)||0).toFixed(digits));}
@@ -155,6 +157,94 @@ function addEncoding(args,a,output){
 
 async function renderPhoto(ctx,command,args,output){const result=await runCli(ctx,command,[...args,output],{allowFailure:true,timeoutMs:PHOTO_TIMEOUT_MS,maxChars:250000,env:imageEnv()});if(result.exitCode!==0)throw new Error(`photo render failed: ${result.output.slice(-3000)}`);return result;}
 
+// ------------------------------------------------------------- Supreme pixel engine
+function supremeArguments(a,preset){
+  const collected={};
+  for(const key of SUPREME_KEYS){if(a[key]!==undefined&&a[key]!==null)collected[key]=a[key];}
+  if(preset?.supreme)for(const[key,value]of Object.entries(preset.supreme))if(collected[key]===undefined||collected[key]===null)collected[key]=value;
+  if(a.portraitBlur!==undefined&&a.portraitBlur!==null)collected.portraitBlur=a.portraitBlur;
+  return collected;
+}
+
+async function readRawFrame(ctx,command,file,width,height,temp){
+  const raw=path.join(temp,"supreme-frame.rgb");
+  const result=await runCli(ctx,command,[firstFrame(file),"-auto-orient","-alpha","off","-background","white","-colorspace","sRGB","-depth","8","rgb:"+raw],{allowFailure:true,timeoutMs:PHOTO_TIMEOUT_MS,maxChars:120000,env:imageEnv()});
+  if(result.exitCode!==0)throw new Error(`Supreme engine could not decode the photo: ${result.output.slice(-1600)}`);
+  const bytes=await fs.readFile(raw);
+  if(bytes.length!==width*height*3)throw new Error(`Supreme engine expected ${width*height*3} RGB bytes and received ${bytes.length}`);
+  return bytes;
+}
+
+async function writeRawFrame(ctx,command,buffer,width,height,temp,output,quality=92){
+  const raw=path.join(temp,"supreme-out.rgb");
+  await fs.writeFile(raw,buffer.subarray(0,width*height*3));
+  const extension=path.extname(output).toLowerCase();
+  const args=["-size",`${width}x${height}`,"-depth","8",`rgb:${raw}`,"-colorspace","sRGB"];
+  if([".jpg",".jpeg"].includes(extension))args.push("-sampling-factor","4:4:4","-interlace","Plane","-quality",String(Math.max(quality,88)));
+  else if(extension===".png")args.push("-define","png:compression-level=6");
+  else args.push("-quality",String(Math.max(quality,88)));
+  await renderPhoto(ctx,command,args,output);
+  return output;
+}
+
+async function writeGrayMask(ctx,command,plane,width,height,temp,name){
+  const gray=path.join(temp,`${name}.gray`),file=path.join(temp,`${name}.png`);
+  await fs.writeFile(gray,plane);
+  await renderPhoto(ctx,command,["-size",`${width}x${height}`,"-depth","8",`gray:${gray}`],file);
+  return file;
+}
+
+async function runSupremeStage(ctx,command,input,output,metadata,analysis,spec,temp,{skinMask=false,quality=92}={}){
+  const raw=await readRawFrame(ctx,command,input,metadata.width,metadata.height,temp);
+  const result=applySupremePipeline(raw,metadata.width,metadata.height,spec,{focus:analysis?.focus||null});
+  let mask=null;
+  if(skinMask){
+    const built=buildSkinMask(raw,metadata.width,metadata.height,{});
+    if(!(built.coverage>0.0008&&built.coverage<0.6))throw new Error(`skin-tone selection matched only ${(built.coverage*100).toFixed(2)}% of the photo (${built.coverage<0.0008?"this image carries almost no skin chroma; it looks monochrome or heavily stylised":"the chroma band covered nearly the whole frame"}); pass mask= with a real mask, use regionBoxes, or grade the full photo`);
+    mask={file:await writeGrayMask(ctx,command,built.mask,metadata.width,metadata.height,temp,"supreme-skin-mask"),coverage:round(built.coverage,6),source:"measured Cb/Cr skin chroma band"};
+  }
+  await writeRawFrame(ctx,command,result.raw,metadata.width,metadata.height,temp,output,quality);
+  return {applied:result.applied,mask};
+}
+
+function supremeKeystone(a,metadata){
+  const width=metadata.width,height=metadata.height;
+  const border=String(a.frame||"").trim().toLowerCase();
+  if(!border||border==="none")return null;
+  const named={white:"#ffffff",black:"#000000","off-white":"#f7f3ee",cream:"#f3e6c8",film:"#1a1a1c",polaroid:"#ffffff"}[border]||safeColor(border,"#ffffff");
+  const edge=Math.max(1,Math.round(clamp(Number(a.frameWidth)||6,0.5,30)*Math.min(width,height)/100));
+  const bottom=border==="polaroid"?Math.round(edge*3.6):edge;
+  return {color:named,width:edge,top:edge,right:edge,bottom,left:edge,target:{width:width+edge*2,height:height+edge+bottom}};
+}
+
+async function applyFrame(ctx,command,file,frame,changes){
+  if(!frame)return null;
+  const framed=path.join(path.dirname(file),`.frame-${path.basename(file)}`);
+  const gravities=[["North",`0x${frame.top}`],["South",`0x${frame.bottom}`],["West",`${frame.left}x0`],["East",`${frame.right}x0`]];
+  const args=[firstFrame(file),"-background",frame.color];
+  for(const[gravity,geometry]of gravities)if(geometry!=="0x0")args.push("-gravity",gravity,"-splice",geometry);
+  await renderPhoto(ctx,command,args,framed);
+  await fs.rename(framed,file);
+  changes.push(`framed the photo with a ${frame.width}px ${frame.color} ${frame.bottom>frame.top?"polaroid ":""}keystone border`);
+  return {color:frame.color,width:frame.width,top:frame.top,bottom:frame.bottom};
+}
+
+async function buildSkinSelection(ctx,command,input,metadata,a,temp){
+  const raw=await readRawFrame(ctx,command,input,metadata.width,metadata.height,temp);
+  const built=buildSkinMask(raw,metadata.width,metadata.height,{skinBand:a.skinBandTight===true?{cbMin:0.36,cbMax:0.50,crMin:0.56,crMax:0.71,lMin:0.12,lMax:0.90}:undefined});
+  if(!(built.coverage>0.0008&&built.coverage<0.6))throw new Error(`the measured skin chroma band only matched ${(built.coverage*100).toFixed(2)}% of this photo (${built.coverage<0.0008?"it carries almost no skin colour, so it reads as monochrome or heavily stylised":"it covered nearly the whole frame"}). Pass a real mask image, use regionBoxes, or grade the full photo instead`);
+  const feather=clamp(Number(a.maskFeather??6),0,32),expand=Math.round(clamp(Number(a.maskExpand??0),-32,32));
+  const normalized=path.join(temp,"skin-selection.png"),args=[firstFrame(await writeGrayMask(ctx,command,built.mask,metadata.width,metadata.height,temp,"skin-raw")),"-alpha","off","-colorspace","Gray"];
+  if(expand>0)args.push("-morphology","Dilate",`Disk:${expand}`);else if(expand<0)args.push("-morphology","Erode",`Disk:${Math.abs(expand)}`);
+  if(feather>0)args.push("-blur",`0x${feather}`);
+  args.push("-evaluate","multiply","1.35","-clamp");
+  await renderPhoto(ctx,command,args,normalized);
+  const probe=await runCli(ctx,command,[firstFrame(normalized),"-format","%[fx:mean]","info:"],{allowFailure:true,timeoutMs:120000,maxChars:8000,env:imageEnv()});
+  const coverage=clamp(Number(probe.stdout)||built.coverage,0,1);
+  if(!(coverage>0.002&&coverage<0.75))throw new Error(`the generated skin mask covers ${(coverage*100).toFixed(1)}% of the photo; use editScope=full or supply a manual mask`);
+  return {file:normalized,coverage:round(coverage),feather,expand,source:"measured Cb/Cr skin chroma"};
+}
+
 async function requireRembg(){const commands=await available(["rembg"]);if(!commands.rembg)throw new Error("background operations require rembg; run: bash scripts/install-photo-ai.sh --mode rembg");return commands.rembg;}
 async function runRembg(ctx,input,output){const model=await configuredRembgModel(),result=await runCli(ctx,"rembg",["i","-m",model,"-dc",input,output],{allowFailure:true,timeoutMs:20*60*1000,maxChars:160000});if(result.exitCode!==0)throw new Error(`rembg could not process the photo: ${result.output.slice(-2500)}`);return {model};}
 
@@ -184,13 +274,13 @@ function slimAnalysis(analysis){return {environment:{primary:analysis.environmen
 
 export const photoEditorTool=defineTool({
   name:"photo_editor",
-  description:"Professional photo studio for Termux/Android. analyze is a read-only consultation. Every natural edit request must be copied verbatim into request. Localized wording such as window, eyes, face, hair, clothing, sky, water, grass, mountain, subject or background is converted to a strict regional scope: it can use a semantic mask, manual mask, or normalized regionBoxes/regionPolygons, but can never silently fall back to the whole photo. editScope selects full, subject, background, detail or mask. list_effects exposes local reproducible finishes; photoPreset selects one for auto_edit. remove_background and replace_background use an installed rembg model and never pretend to work when it is unavailable. Cropping happens only when requested. The original is never overwritten, and both global and selected-area pixel gates reject fake, invisible or leaking edits.",
+  description:"Supremo Photo Studio v4.0 for Termux/Android. analyze is a read-only consultation. supreme_edit runs the local BLACKCORE pixel engine: real tone curves (s-curve, cinematic, matte, punchy, elevated, crushed, reverse-s, filmic), exposure/blacks/whites, shadow and highlight zones, local clarity, vibrance with Cb/Cr skin-tone protection, per-hue-band HSL, automatic or illuminant white balance, duotone/gradient map, vignette, film grain, studio relight, neon glow, light leak, RGB glitch and portrait depth blur. photoPreset accepts every id and alias returned by list_effects, including polish-* and supremo-* finishes. Every natural edit request must be copied verbatim into request. Localized wording such as window, eyes, face, hair, clothing, sky, water, grass, mountain, subject or background is converted to a strict regional scope: it can use a semantic mask, manual mask, or normalized regionBoxes/regionPolygons, but can never silently fall back to the whole photo. editScope selects full, subject, background, detail or mask. list_effects exposes local reproducible finishes; photoPreset selects one for auto_edit. remove_background and replace_background use an installed rembg model and never pretend to work when it is unavailable. Cropping happens only when requested. The original is never overwritten, and both global and selected-area pixel gates reject fake, invisible or leaking edits.",
   mutates:true,
   planSafe:a=>["list_images","list_effects","inspect","analyze"].includes(a.action),
   parameters:{type:"object",additionalProperties:false,properties:{
     action:{type:"string",enum:ACTIONS},input:{type:"string",maxLength:4096},output:{type:"string",maxLength:4096},directory:{type:"string",maxLength:4096},query:{type:"string",maxLength:200},limit:{type:"integer",minimum:1,maximum:200},
-    photoPreset:{type:"string",enum:["clean-natural","natural","cinematic-balanced","cinematic","blackcore-dark","blackcore","warm-vintage","vintage","social-pop","social","mono-noir","monochrome","studio-neutral","studio"]},editLevel:{type:"string",enum:["basic","medium","high"]},visualStyle:{type:"string",enum:["natural","cinematic","blackcore-dark"]},strength:{type:"number",minimum:0,maximum:1},enhanceLight:{type:"boolean"},enhanceColor:{type:"boolean"},enhanceDetails:{type:"boolean"},denoise:{type:"boolean"},
-    editScope:{type:"string",enum:["full","subject","background","detail","mask"]},regionTarget:{type:"string",enum:["eyes","window","face","hair","clothing","sky","water","grass","mountain","background","subject","custom"]},regionPrompt:{type:"string",maxLength:300},regionBoxes:{type:"array",minItems:1,maxItems:16,items:{type:"object",additionalProperties:false,properties:{x:{type:"number",minimum:0,maximum:1},y:{type:"number",minimum:0,maximum:1},width:{type:"number",minimum:0.002,maximum:1},height:{type:"number",minimum:0.002,maximum:1},shape:{type:"string",enum:["rectangle","ellipse"]}},required:["x","y","width","height"]}},regionPolygons:{type:"array",minItems:1,maxItems:8,items:{type:"object",additionalProperties:false,properties:{points:{type:"array",minItems:3,maxItems:80,items:{type:"object",additionalProperties:false,properties:{x:{type:"number",minimum:0,maximum:1},y:{type:"number",minimum:0,maximum:1}},required:["x","y"]}}},required:["points"]}},maskFeather:{type:"number",minimum:0,maximum:32},maskExpand:{type:"integer",minimum:-32,maximum:32},invertMask:{type:"boolean"},segmentationEndpoint:{type:"string",maxLength:4096},segmentationEndpointEnv:{type:"string",maxLength:128},segmentationTokenEnv:{type:"string",maxLength:128},
+    photoPreset:{type:"string",enum:photoEffectPresetTokens()},toneCurve:{type:"string",enum:TONE_CURVE_NAMES},toneCurvePoints:{type:"array",minItems:2,maxItems:12,items:{type:"object",additionalProperties:false,properties:{x:{type:"number",minimum:0,maximum:1},y:{type:"number",minimum:0,maximum:1}},required:["x","y"]}},toneCurveStrength:{type:"number",minimum:0,maximum:2},shadows:{type:"number",minimum:-100,maximum:100},highlights:{type:"number",minimum:-100,maximum:100},whites:{type:"number",minimum:-100,maximum:100},blacks:{type:"number",minimum:-100,maximum:100},clarity:{type:"number",minimum:-100,maximum:100},hsl:{type:"object",additionalProperties:false,properties:{hue:{type:"object",additionalProperties:false,properties:Object.fromEntries(HSL_BANDS.map(band=>[band,{type:"number",minimum:-100,maximum:100}]))},saturation:{type:"object",additionalProperties:false,properties:Object.fromEntries(HSL_BANDS.map(band=>[band,{type:"number",minimum:-100,maximum:100}]))},lightness:{type:"object",additionalProperties:false,properties:Object.fromEntries(HSL_BANDS.map(band=>[band,{type:"number",minimum:-100,maximum:100}]))},mix:{type:"number",minimum:0,maximum:100}}},skinToneProtection:{type:"number",minimum:0,maximum:100},duotone:{type:"object",additionalProperties:false,properties:{shadow:{type:"string",maxLength:24},highlight:{type:"string",maxLength:24},mix:{type:"number",minimum:0,maximum:100}}},vignette:{type:"number",minimum:-100,maximum:100},vignetteMidpoint:{type:"number",minimum:10,maximum:100},filmGrain:{type:"number",minimum:0,maximum:100},grainSize:{type:"string",enum:["fine","medium","coarse"]},studioRelight:{type:"number",minimum:-100,maximum:100},lightLeak:{type:"object",additionalProperties:false,properties:{intensity:{type:"number",minimum:0,maximum:100},color:{type:"string",maxLength:24},direction:{type:"string",enum:["top-left","top","top-right","left","center","right","bottom-left","bottom","bottom-right"]}}},neonGlow:{type:"number",minimum:0,maximum:100},glitch:{type:"number",minimum:0,maximum:100},portraitBlur:{type:"number",minimum:0,maximum:100},whiteBalance:{type:"string",enum:["auto","tungsten","fluorescent","daylight","cloudy","shade","custom","none"]},whiteBalanceStrength:{type:"number",minimum:0,maximum:1},autoWhiteBalance:{type:"boolean"},frame:{type:"string",maxLength:24},frameWidth:{type:"number",minimum:0.5,maximum:30},editLevel:{type:"string",enum:["basic","medium","high"]},visualStyle:{type:"string",enum:["natural","cinematic","blackcore-dark"]},strength:{type:"number",minimum:0,maximum:1},enhanceLight:{type:"boolean"},enhanceColor:{type:"boolean"},enhanceDetails:{type:"boolean"},denoise:{type:"boolean"},
+    editScope:{type:"string",enum:["full","subject","background","detail","mask","skin"]},baseGrade:{type:"boolean"},skinBandTight:{type:"boolean"},regionTarget:{type:"string",enum:["eyes","window","face","hair","clothing","sky","water","grass","mountain","background","subject","custom"]},regionPrompt:{type:"string",maxLength:300},regionBoxes:{type:"array",minItems:1,maxItems:16,items:{type:"object",additionalProperties:false,properties:{x:{type:"number",minimum:0,maximum:1},y:{type:"number",minimum:0,maximum:1},width:{type:"number",minimum:0.002,maximum:1},height:{type:"number",minimum:0.002,maximum:1},shape:{type:"string",enum:["rectangle","ellipse"]}},required:["x","y","width","height"]}},regionPolygons:{type:"array",minItems:1,maxItems:8,items:{type:"object",additionalProperties:false,properties:{points:{type:"array",minItems:3,maxItems:80,items:{type:"object",additionalProperties:false,properties:{x:{type:"number",minimum:0,maximum:1},y:{type:"number",minimum:0,maximum:1}},required:["x","y"]}}},required:["points"]}},maskFeather:{type:"number",minimum:0,maximum:32},maskExpand:{type:"integer",minimum:-32,maximum:32},invertMask:{type:"boolean"},segmentationEndpoint:{type:"string",maxLength:4096},segmentationEndpointEnv:{type:"string",maxLength:128},segmentationTokenEnv:{type:"string",maxLength:128},
     aspectRatio:{type:"string",enum:["original","square","portrait","story","landscape","classic-landscape"]},cropWidth:{type:"integer",minimum:1,maximum:32768},cropHeight:{type:"integer",minimum:1,maximum:32768},x:{type:"integer",minimum:0,maximum:32768},y:{type:"integer",minimum:0,maximum:32768},
     width:{type:"integer",minimum:1,maximum:32768},height:{type:"integer",minimum:1,maximum:32768},resizeMode:{type:"string",enum:["fit","fill","stretch"]},allowUpscale:{type:"boolean"},position:{type:"string",enum:["top-left","top","top-right","left","center","right","bottom-left","bottom","bottom-right"]},
     degrees:{type:"number",minimum:-360,maximum:360},direction:{type:"string",enum:["horizontal","vertical"]},brightness:{type:"number",minimum:-100,maximum:100},contrast:{type:"number",minimum:-100,maximum:100},gamma:{type:"number",minimum:0.2,maximum:3},exposure:{type:"number",minimum:-3,maximum:3},
@@ -216,8 +306,12 @@ export const photoEditorTool=defineTool({
       const advice=a.action==="analyze"?buildPhotoAdvice(analysis,metadata,await inspectPhotoSelectionCapabilities(ctx,a,input,metadata,command)):null;progress("verifying",100,a.action==="analyze"?"diagnosis and selectable edit menu ready":"photo inspection ready",14);return JSON.stringify({ok:true,action:a.action,input,bytes:sourceStat.size,metadata,analysis:slimAnalysis(analysis),...(advice?{advice}:{})},null,2);
     }
     const preset=resolvePhotoEffectPreset(a.photoPreset);if(a.photoPreset&&!preset)throw new Error(`unknown photoPreset ${a.photoPreset}; run photo_editor with action=list_effects to see the available finishes`);
-    const editScope=String(a.editScope||"full");if(editScope!=="full"&&!SELECTIVE_ACTIONS.has(a.action))throw new Error(`editScope=${editScope} is supported for auto_edit, adjust_light, adjust_color, enhance_details, denoise and blur; ${a.action} changes the whole composition`);
-    const output=await resolveOutput(ctx,a.output,input,a),changes=[];let args=[firstFrame(input),"-auto-orient","-colorspace","sRGB"],plan=null,crop=null,resize=null,watermark=null,text=null,selection=null,selectionVerification=null,temp=null;
+    const editScope=String(a.editScope||"full");if(editScope!=="full"&&!SELECTIVE_ACTIONS.has(a.action))throw new Error(`editScope=${editScope} is supported for auto_edit, supreme_edit, adjust_light, adjust_color, enhance_details, denoise and blur; ${a.action} changes the whole composition`);
+    const supremeSpec=supremeArguments(a,preset);
+    const supremeRequested=a.action==="supreme_edit"||hasSupremeArguments(a)||Boolean(preset?.supreme&&a.action==="auto_edit");
+    if(supremeRequested&&metadata.width*metadata.height>MAX_ENGINE_PIXELS)throw new Error(`the Supreme pixel engine refuses ${metadata.width}×${metadata.height} on a phone (${(metadata.width*metadata.height/1e6).toFixed(1)}MP > ${MAX_ENGINE_PIXELS/1e6}MP); pass a width/height to resize first or use a smaller source`);
+    if(a.action==="supreme_edit"&&!supremeRequested)throw new Error("supreme_edit needs at least one Supreme parameter or a photoPreset carrying a Supreme finish");
+    const output=await resolveOutput(ctx,a.output,input,a),changes=[];let args=[firstFrame(input),"-auto-orient","-colorspace","sRGB"],plan=null,crop=null,resize=null,watermark=null,text=null,selection=null,selectionVerification=null,temp=null,supreme=null,frame=null;
     if(["remove_background","replace_background"].includes(a.action)){
       if(editScope!=="full")throw new Error(`${a.action} works on the complete photo; use subject/background scope for a localized color edit`);
       progress("scope",21,"subject/background operation selected",3);progress("composition",26,a.action==="remove_background"?"preparing transparent cutout":"preparing replacement background",4);
@@ -231,26 +325,43 @@ export const photoEditorTool=defineTool({
         crop=explicitCrop(a,metadata,analysis);args.push("-crop",`${crop.width}x${crop.height}+${crop.x}+${crop.y}`,"+repage");changes.push(`cropped around the ${crop.focus?"detected focal region":"requested coordinates"} to ${crop.width}×${crop.height}`);
       }else if(a.action==="resize"){
         resize=addResize(args,a);if(!resize)throw new Error("resize requires width or height");changes.push(`resized the photo with ${resize.mode} composition to ${resize.width||"auto"}×${resize.height||"auto"}`);
+      }else if(a.action==="supreme_edit"){
+        if(a.baseGrade===true){plan=buildAutoPhotoPlan(analysis,a);addAutoPlan(args,plan);changes.push(...plan.reasons);}
       }else explicitEdits(args,a,changes);
 
+      const strictGate=a.action==="auto_edit"||a.action==="supreme_edit";
+      if(supremeRequested){
+        temp=temp||await fs.mkdtemp(path.join(os.tmpdir(),"blackcore-photo-scope-"));
+        progress("supreme",58,"decoding the frame into the BLACKCORE pixel engine",8);
+        let engineSource=input;
+        if(args.length>3){const base=path.join(temp,"supreme-base.png");await renderPhoto(ctx,command,args,base);engineSource=base;}
+        const stage=await runSupremeStage(ctx,command,engineSource,path.join(temp,"supreme-render.png"),metadata,analysis,supremeSpec,temp,{quality:96});
+        supreme={applied:stage.applied,parameters:Object.fromEntries(SUPREME_KEYS.filter(key=>supremeSpec[key]!==undefined).map(key=>[key,supremeSpec[key]])),engine:"blackcore-pixel-v4"};
+        args=[firstFrame(path.join(temp,"supreme-render.png")),"-colorspace","sRGB"];
+        changes.push(...stage.applied);
+        progress("supreme",59,`${stage.applied.length} Supreme stages rendered locally`,8);
+      }else if(a.action==="supreme_edit")throw new Error("supreme_edit needs at least one Supreme parameter or a photoPreset that carries a Supreme finish");
+
       if(editScope!=="full"){
-        temp=await fs.mkdtemp(path.join(os.tmpdir(),"blackcore-photo-scope-"));selection=await resolvePhotoSelection(ctx,a,input,metadata,command,temp);progress("masking",61,`${editScope} mask · ${selection.source} · ${(selection.coverage*100).toFixed(1)}% selected`,9);
-        const fullyEdited=path.join(temp,"fully-edited.png"),scopedBase=path.join(temp,"scoped-base.png");await renderPhoto(ctx,command,args,fullyEdited);await compositePhotoSelection(ctx,command,input,fullyEdited,selection.file,scopedBase);selectionVerification=await verifyPhotoSelection(ctx,command,input,scopedBase,selection.file,temp,{minimumInside:a.action==="auto_edit"?{basic:0.006,medium:0.009,high:0.014}[a.editLevel||"medium"]:0.004});
+        temp=temp||await fs.mkdtemp(path.join(os.tmpdir(),"blackcore-photo-scope-"));selection=editScope==="skin"?await buildSkinSelection(ctx,command,input,metadata,a,temp):await resolvePhotoSelection(ctx,a,input,metadata,command,temp);progress("masking",61,`${editScope} mask · ${selection.source} · ${(selection.coverage*100).toFixed(1)}% selected`,9);
+        const fullyEdited=path.join(temp,"fully-edited.png"),scopedBase=path.join(temp,"scoped-base.png");await renderPhoto(ctx,command,args,fullyEdited);await compositePhotoSelection(ctx,command,input,fullyEdited,selection.file,scopedBase);selectionVerification=await verifyPhotoSelection(ctx,command,input,scopedBase,selection.file,temp,{minimumInside:strictGate?{basic:0.006,medium:0.011,high:0.018}[a.editLevel||"medium"]:0.004});
         if(!selectionVerification.passed)throw new Error(`selected-area quality check rejected the render (inside ${selectionVerification.insideMean}, outside ${selectionVerification.outsideMean}); no leaking or fake edit was delivered`);
         args=[firstFrame(scopedBase),"-colorspace","sRGB"];const scopeName=editScope==="detail"?`detail '${String(a.regionPrompt||"mask").trim()}'`:editScope;changes.push(`limited the treatment to the selected ${scopeName}; pixels outside the mask were preserved`);
       }else progress("masking",61,"full-photo treatment; no selection mask needed",9);
 
-      if(a.action==="auto_edit"){
+      if(a.action==="auto_edit"||a.action==="supreme_edit"){
         crop=explicitCrop(a,metadata,analysis);if(crop){args.push("-crop",`${crop.width}x${crop.height}+${crop.x}+${crop.y}`,"+repage");changes.push(`smart-cropped around the detected focal region to ${crop.aspectRatio} (${crop.width}×${crop.height})`);}resize=addResize(args,a);if(resize)changes.push(`resized the photo with ${resize.mode} composition${resize.width||resize.height?` to ${resize.width||"auto"}×${resize.height||"auto"}`:""}`);
       }
       progress("cropping",68,crop?`${crop.width}×${crop.height}+${crop.x}+${crop.y}`:resize?"target dimensions prepared":"composition preserved; no crop was requested",10);
       const wantsText=a.action==="overlay_text"||!!a.text;if(a.action==="overlay_text"&&!a.text)throw new Error("text required");if(wantsText){text=addText(args,a,metadata);changes.push(`added text at ${text.position}`);}progress("text",74,text?"placing readable text":"no text requested",11);
       const watermarkRequest=await watermarkSpec(a,ctx);if(watermarkRequest){watermark=addWatermark(args,watermarkRequest,a,metadata);changes.push(`added the ${watermark.brand?"BLACKCORE signature (AI PHOTO STUDIO)":"requested"} watermark at ${watermark.position}`);}progress("branding",80,watermark?`placing ${watermark.brand?"BLACKCORE PHOTO":"custom"} watermark`:"watermark not requested",12);
       if(a.action==="convert")changes.push(`converted the photo to ${path.extname(output).slice(1).toUpperCase()}`);if(a.action==="compress")changes.push("compressed the photo for efficient phone sharing");
-      const quality=addEncoding(args,a,output);progress("exporting",87,`rendering ${path.extname(output).slice(1).toUpperCase()} at quality ${quality}`,13);await renderPhoto(ctx,command,args,output);progress("verifying",95,selection?"checking selected-area strength, boundary leakage and final texture":"checking dimensions, texture and level-aware visible pixel delta",14);const outputMetadata=await inspectPhoto(ctx,command,output),outputAnalysis=a.action==="auto_edit"?await analyzePhoto(ctx,command,output,outputMetadata):null,minimumDelta=a.action==="auto_edit"?(selection?0.00005:{basic:0.008,medium:0.015,high:0.025}[a.editLevel||"medium"]||0.015):0.00005,verification=await verifyPhoto(ctx,input,output,metadata,outputMetadata,{minimumDelta}),bytes=(await fs.stat(output)).size;
-      if(a.action==="auto_edit"&&!verification.changed){await fs.rm(output,{force:true});throw new Error("photo quality check rejected a no-change render; no fake edited copy was delivered");}
-      if(a.action==="auto_edit"&&outputAnalysis&&Number(outputAnalysis.detail.meanGradient)<Number(analysis.detail.meanGradient)*0.62){await fs.rm(output,{force:true});throw new Error("photo quality check rejected excessive fine-detail loss across the frame");}
-      progress("verifying",100,selection?"selected-area edit verified and ready":"strong photo grade verified and ready",14);return JSON.stringify({ok:true,action:a.action,input,output,bytes,metadata:outputMetadata,analysis:slimAnalysis(analysis),editScope,regionalIntent:regional.intent,changes,verification:{...verification,...(outputAnalysis?{tone:{before:{p05:analysis.light.p05,p95:analysis.light.p95,stdDev:analysis.light.stdDev,saturation:analysis.color.meanSaturation,detail:analysis.detail.meanGradient},after:{p05:outputAnalysis.light.p05,p95:outputAnalysis.light.p95,stdDev:outputAnalysis.light.stdDev,saturation:outputAnalysis.color.meanSaturation,detail:outputAnalysis.detail.meanGradient}}}:{})},...(selection?{selection:{source:selection.source,coverage:selection.coverage,feather:selection.feather,expand:selection.expand},selectionVerification}:{}),...(plan?{editLevel:a.editLevel||"medium",visualStyle:plan.style,photoPreset:plan.presetId,plan:{strength:plan.strength,blackPoint:plan.blackPoint,whitePoint:plan.whitePoint,sigmoidContrast:plan.sigmoidContrast,sigmoidMidpoint:plan.sigmoidMidpoint,saturation:plan.saturation,denoise:plan.denoise,monochrome:plan.monochrome}}:{}),...(crop?{crop}:{}),...(resize?{resize}:{}),...(watermark?{watermark}:{}),...(text?{text}: {})},null,2);
+      const quality=addEncoding(args,a,output);progress("exporting",87,`rendering ${path.extname(output).slice(1).toUpperCase()} at quality ${quality}`,13);await renderPhoto(ctx,command,args,output);
+      frame=await applyFrame(ctx,command,output,supremeKeystone(a,metadata),changes);
+      progress("verifying",95,selection?"checking selected-area strength, boundary leakage and final texture":"checking dimensions, texture and level-aware visible pixel delta",14);const outputMetadata=await inspectPhoto(ctx,command,output),outputAnalysis=strictGate?await analyzePhoto(ctx,command,output,outputMetadata):null,minimumDelta=strictGate?(selection?0.00005:{basic:0.008,medium:0.015,high:0.025}[a.editLevel||"medium"]||0.015):0.00005,verification=await verifyPhoto(ctx,input,output,metadata,outputMetadata,{minimumDelta}),bytes=(await fs.stat(output)).size;
+      if(strictGate&&!verification.changed){await fs.rm(output,{force:true});throw new Error("photo quality check rejected a no-change render; no fake edited copy was delivered");}
+      if(strictGate&&outputAnalysis&&Number(outputAnalysis.detail.meanGradient)<Number(analysis.detail.meanGradient)*0.62){await fs.rm(output,{force:true});throw new Error("photo quality check rejected excessive fine-detail loss across the frame");}
+      progress("verifying",100,selection?"selected-area edit verified and ready":"strong photo grade verified and ready",14);return JSON.stringify({ok:true,action:a.action,input,output,bytes,metadata:outputMetadata,analysis:slimAnalysis(analysis),editScope,regionalIntent:regional.intent,changes,verification:{...verification,...(outputAnalysis?{tone:{before:{p05:analysis.light.p05,p95:analysis.light.p95,stdDev:analysis.light.stdDev,saturation:analysis.color.meanSaturation,detail:analysis.detail.meanGradient},after:{p05:outputAnalysis.light.p05,p95:outputAnalysis.light.p95,stdDev:outputAnalysis.light.stdDev,saturation:outputAnalysis.color.meanSaturation,detail:outputAnalysis.detail.meanGradient}}}:{})},...(selection?{selection:{source:selection.source,coverage:selection.coverage,feather:selection.feather,expand:selection.expand},selectionVerification}:{}),...(supreme?{supreme}:{}),...(frame?{frame}:{}),...(plan?{editLevel:a.editLevel||"medium",visualStyle:plan.style,photoPreset:plan.presetId,plan:{strength:plan.strength,blackPoint:plan.blackPoint,whitePoint:plan.whitePoint,sigmoidContrast:plan.sigmoidContrast,sigmoidMidpoint:plan.sigmoidMidpoint,saturation:plan.saturation,denoise:plan.denoise,monochrome:plan.monochrome}}:{}),...(crop?{crop}:{}),...(resize?{resize}:{}),...(watermark?{watermark}:{}),...(text?{text}: {})},null,2);
     }finally{if(temp)await fs.rm(temp,{recursive:true,force:true});}
   }
 });

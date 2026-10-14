@@ -59,7 +59,7 @@ export const DEFAULT_CONFIG={
   agentTaskGraphMode:"adaptive",
   maxParallelAgents:4,
   agentTeamTurns:{planner:12,programmer:20,tester:12,reviewer:12,investigator:10},
-  agentTaskBudget:{enabled:true,maxInputTokens:1500000,maxOutputTokens:300000,maxTotalTokens:1800000,maxCostUSD:2,warnRatio:0.8},
+  agentTaskBudget:{enabled:true,maxInputTokens:6000000,maxOutputTokens:400000,maxTotalTokens:8000000,maxCostUSD:10,warnRatio:0.85},
   subagentMaxTurns:20,
   maxParallelReadTools:4,
   maxToolOutputChars:120000,
@@ -91,6 +91,24 @@ export const DEFAULT_CONFIG={
         {id:"gpt-5.6-luna",label:"GPT-5.6 Luna (OpenAI)",context:1050000,maxOutput:128000,vision:true,tools:true,responses:true,pricing:{input:0.20,cacheRead:0.02,output:1.20,currency:"USD",tierNote:">272K input: 2x input · 1.5x output"}}
       ]
     },
+    tokenharbor:{
+      type:"tokenharbor",
+      baseUrl:"https://tokenharbor.ai/v1",
+      apiKeyEnv:"TOKENHARBOR_API_KEY",
+      apiKeyEnvs:["TOKENHARBOR_API_KEY","TOKENHARBOR_API_KEY_2","TOKENHARBOR_API_KEY_3","TOKENHARBOR_API_KEY_4","TOKENHARBOR_API_KEY_5","TOKENHARBOR_API_KEY_6","TOKENHARBOR_API_KEY_7","TOKENHARBOR_API_KEY_8"],
+      keyPool:{enabled:true,maxKeys:8,strategy:"sequential-sticky",handoffSafeStreaming:true},
+      freeTier:true,
+      fastPoolModels:["deepseek-v4.1-flash:free","deepseek-v4-flash:free","mimo-v2.6-flash:free","mimo-v2.5:free"],
+      models:[
+        {id:"tokenharbor-fast-pool",serverModel:"deepseek-v4.1-flash:free",label:"★ Token Harbor Fast Pool (DeepSeek V4.1 · DeepSeek V4 · MiMo 2.6)",context:262144,maxOutput:65536,thinking:true,tools:true,freeTier:true,pool:true,description:"Multi-Fast Pool (8 Chaves). Rotação ultra-rápida entre DeepSeek V4.1, DeepSeek V4 e MiMo 2.6 Flash."},
+        {id:"deepseek-v4.1-flash:free",serverModel:"deepseek-v4.1-flash:free",label:"DeepSeek V4.1 Flash Free (Token Harbor)",context:262144,maxOutput:65536,thinking:true,tools:true,freeTier:true,description:"Nova versão ultra-rápida DeepSeek V4.1 Flash gratuito via Token Harbor."},
+        {id:"deepseek-v4-flash:free",serverModel:"deepseek-v4-flash:free",label:"DeepSeek V4 Flash Free (Token Harbor)",context:262144,maxOutput:65536,thinking:true,tools:true,freeTier:true,description:"Modelo DeepSeek V4 Flash gratuito via Token Harbor."},
+        {id:"mimo-v2.6-flash:free",serverModel:"mimo-v2.6-flash:free",label:"MiMo 2.6 Flash Free (Token Harbor)",context:262144,maxOutput:65536,thinking:true,tools:true,freeTier:true,description:"Modelo ultra-rápido da Xiaomi via Token Harbor (1.73s TTFT)."},
+        {id:"mimo-v2.5:free",serverModel:"mimo-v2.5:free",label:"MiMo 2.5 Free (Token Harbor)",context:262144,maxOutput:65536,thinking:true,tools:true,freeTier:true,description:"Modelo gratuito MiMo 2.5 via Token Harbor."},
+        {id:"qwen3.8-flash:free",serverModel:"qwen3.8-flash:free",label:"Qwen 3.8 Flash Free (Token Harbor)",context:262144,maxOutput:65536,thinking:true,tools:true,freeTier:true,description:"Modelo ultra-rápido da Alibaba via Token Harbor."},
+        {id:"deepseek-v4-pro",serverModel:"deepseek-v4-pro",label:"DeepSeek V4 Pro (Token Harbor)",context:262144,maxOutput:65536,thinking:true,tools:true,pricing:{input:1.32,cacheRead:0.003625,output:3.96,currency:"USD"}}
+      ]
+    },
     deepseek:{
       type:"deepseek",
       baseUrl:"https://tokenharbor.ai/v1",
@@ -111,10 +129,8 @@ export const DEFAULT_CONFIG={
       maxActiveTools:20,
       freeTier:true,
       freePoolModels:["gemini-3.8-flash","gemini-3.7-flash","gemini-3.6-flash","gemini-3.5-flash-lite","gemini-3.1-flash-lite","gemma-4-31b-it","gemma-4-26b-a4b-it","gemini-3.6-flash"],
-      hybridFallback:true,
-      hybridFallbackModels:["qwen/qwen3.7-flash","mistralai/mistral-nemo"],
       models:[
-        {id:"google-free-pool",label:"★ Google Supremo Pool + Qwen 3.7 (Gemini 3.8 · 3.7 · 3.6 → Qwen 3.7)",context:1048576,maxOutput:65536,vision:true,tools:true,freeTier:true,pool:true,description:"Trio Supremo do Google (Gemini 3.8/3.7/3.6 com 8 chaves) com failover híbrido para Qwen 3.7 Flash ($0.03) na WaveSpeed quando o Google estiver esgotado."},
+        {id:"google-free-pool",label:"★ Google Supremo Pool (Gemini 3.8 · 3.7 · 3.6 · Flash-Lite)",context:1048576,maxOutput:65536,vision:true,tools:true,freeTier:true,pool:true,description:"Pool 100% Puro Google AI Studio (8 Chaves). Modelos Flash-Lite para conversa normal e Gemini 3.8/3.7 para tarefas pesadas de engenharia."},
         {id:"gemini-3.8-flash",label:"Gemini 3.8 Flash (Google AI Studio)",context:1048576,maxOutput:65536,vision:true,tools:true,computerUse:true,freeTier:true,description:"Latest generation Gemini 3.8 Flash for advanced reasoning, agentic coding, ultra-fast performance and Elite Pool priority."},
         {id:"gemini-3.7-flash",label:"Gemini 3.7 Flash (Google AI Studio)",context:1048576,maxOutput:65536,vision:true,tools:true,computerUse:true,freeTier:true,description:"Latest stable Gemini Flash for complex coding, agentic workflows and reliable multi-step execution."},
         {id:"gemini-3.5-flash-lite",label:"Gemini 3.5 Flash-Lite (Google AI Studio)",context:1048576,maxOutput:65536,vision:true,tools:true,freeTier:true},

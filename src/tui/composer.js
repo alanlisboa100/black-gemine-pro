@@ -10,13 +10,14 @@ const BORDER="\x1b[38;5;239m";
 const RESET=esc.reset;
 
 function providerLabel(provider=""){
-  return ({openai:"OpenAI",deepseek:"DeepSeek",google:"Google AI Studio"})[provider]||provider||"Provider";
+  return ({openai:"OpenAI",deepseek:"DeepSeek",google:"Google AI Studio",tokenharbor:"Token Harbor",wavespeed:"WaveSpeed AI",local:"Local AI"})[provider]||provider||"Provider";
 }
 function shortModel(model=""){
   const raw=String(model).split("/").at(-1);
   const known={
     "deepseek-v4-flash":"V4 Flash","deepseek-v4-pro":"V4 Pro",
     "gpt-5.6-sol":"GPT-5.6 Sol","gpt-5.6-terra":"GPT-5.6 Terra","gpt-5.6-luna":"GPT-5.6 Luna",
+    "tokenharbor-fast-pool":"TH Fast Pool (Qwen · MiMo · DeepSeek)","qwen3.8-flash:free":"Qwen 3.8 Flash","mimo-v2.6-flash:free":"MiMo 2.6 Flash","deepseek-v4-flash:free":"DeepSeek V4 Flash",
     "google-free-pool":"Google Supremo Pool (3.8 · 3.7 · 3.6)","gemini-3.8-flash":"Gemini 3.8 Flash","gemini-3.7-flash":"Gemini 3.7 Flash","gemini-3.5-flash-lite":"Gemini 3.5 Flash-Lite","gemini-3.1-flash-lite":"Gemini 3.1 Flash Lite",
     "gemma-4-31b-it":"Gemma 4 31B","gemma-4-26b-a4b-it":"Gemma 4 26B A4B","gemini-3.6-flash":"Gemini 3.6 Flash","gemini-3.6-flash":"Gemini 2.5 Flash"
   };
@@ -94,11 +95,45 @@ export async function readComposer(controller,spec={}){
   const state={chars:[],cursor:0,historyIndex:-1,draft:[],suggestionIndex:0};
   controller.questionActive=true;controller.rl.pause();readline.emitKeypressEvents(stdin);
   const wasRaw=!!stdin.isRaw;stdin.setRawMode(true);stdin.resume();stdin.setEncoding("utf8");output.write(esc.showCursor);
+  output.write(esc.bracketedPasteOn);
   let rendered=render(state,spec,output);
   const redraw=()=>{clearRendered(rendered,output);const ms=matchedSuggestions(state.chars.join(""),spec.suggestions);if(!ms.length)state.suggestionIndex=0;else state.suggestionIndex=Math.max(0,Math.min(state.suggestionIndex,ms.length-1));rendered=render(state,spec,output);};
   const setText=text=>{state.chars=[...String(text||"")];state.cursor=state.chars.length;state.suggestionIndex=0;redraw();};
+  const insertText=text=>{
+    const cleaned=String(text||"").replace(/\r\n|\r|\n/g," ");
+    if(!cleaned)return;
+    const add=[...cleaned];
+    state.chars.splice(state.cursor,0,...add);
+    state.cursor+=add.length;
+    state.historyIndex=-1;
+    state.suggestionIndex=0;
+    redraw();
+  };
+  let pasteBuffer="";
+  const onData=data=>{
+    pasteBuffer+=String(data??"");
+    const pStart=pasteBuffer.indexOf("\x1b[200~");
+    if(pStart>=0){
+      const pEnd=pasteBuffer.indexOf("\x1b[201~");
+      if(pEnd>=0){
+        const pasted=pasteBuffer.slice(pStart+6,pEnd);
+        pasteBuffer=pasteBuffer.slice(pEnd+6);
+        insertText(pasted);
+      }
+      return;
+    }
+    if(pasteBuffer.length>1&&/[\r\n]/.test(pasteBuffer)&&pasteBuffer.replace(/\r\n|\r|\n/g,"").length>0&&!pasteBuffer.startsWith("\x1b")){
+      insertText(pasteBuffer);
+      pasteBuffer="";
+    }
+  };
+  stdin.on("data",onData);
   return await new Promise((resolve,reject)=>{
-    const cleanup=()=>stdin.removeListener("keypress",onKey);
+    const cleanup=()=>{
+      stdin.removeListener("keypress",onKey);
+      stdin.removeListener("data",onData);
+      output.write(esc.bracketedPasteOff);
+    };
     const finish=(value,{echo=true}={})=>{
       cleanup();clearRendered(rendered,output);try{stdin.setRawMode(wasRaw);}catch{}controller.rl.resume();controller.questionActive=false;
       if(echo&&String(value).trim())output.write(`${c("1;213","you")} ${c(244,"›")} ${String(value)}\n`);

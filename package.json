@@ -1,6 +1,6 @@
 {
   "name": "blackcore-native",
-  "version": "3.8.1",
+  "version": "4.0.0",
   "description": "Natural-language-first independent terminal agent with professional photo, video and outfit editing for Termux and Linux",
   "type": "module",
   "bin": {

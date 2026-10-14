@@ -4,8 +4,10 @@ import {selectMenu} from "./select-menu.js";
 
 const PROVIDERS={
   openai:{label:"OpenAI",icon:"✦",description:"Primary BLACKCORE models · GPT-5.6 Sol, Terra and Luna · official Responses API."},
-  deepseek:{label:"DeepSeek",icon:"◆",description:"V4 Flash and V4 Pro · economical alternatives for coding and agents."},
   google:{label:"Google AI Studio",icon:"✧",description:"Curated free models + resilient Google pool · 8-key context handoff + parallel agent leases."},
+  tokenharbor:{label:"Token Harbor",icon:"⚡",description:"Dual Fast Pool (8 Chaves) · Qwen 3.8 Flash, MiMo 2.6 Flash & DeepSeek V4 Flash."},
+  deepseek:{label:"DeepSeek",icon:"◆",description:"V4 Flash and V4 Pro · economical alternatives for coding and agents."},
+  wavespeed:{label:"WaveSpeed AI",icon:"🌊",description:"Eco Pool · Qwen 3.7 Flash, Mistral NeMo & DeepSeek V4 Flash."},
   local:{label:"Local AI",icon:"◇",description:"llama.cpp on your own device · OpenAI-compatible endpoint · no API key required."}
 };
 
@@ -13,7 +15,12 @@ function money(v){return Number.isFinite(v)?`$${v.toFixed(v<0.1?3:2)}`:"?";}
 function price(m){if(m.freeTier)return"FREE TIER · quotas apply";const p=m.pricing;if(!p)return"";return `${money(p.input)}/M in · ${money(p.output)}/M out`;}
 function contextLabel(n){if(!Number.isFinite(n))return"context ?";if(n>=1_000_000)return`${(n/1_000_000).toFixed(n%1_000_000?1:0)}M ctx`;if(n>=1000)return`${Math.round(n/1000)}K ctx`;return`${n} ctx`;}
 function desc(m){
-  if(m.id==="deepseek-v4-flash")return"Fast, economical and capable for coding and agent work.";
+  if(m.provider==="tokenharbor"){
+    if(m.id==="tokenharbor-fast-pool")return"★ Dual Fast Pool (8 Chaves): Rotação automática e instantânea entre Qwen 3.8, MiMo 2.6 e DeepSeek V4 Flash.";
+    if(m.id==="qwen3.8-flash:free")return"Qwen 3.8 Flash Free: Alta velocidade da Alibaba (1.64s TTFT).";
+    if(m.id==="mimo-v2.6-flash:free")return"MiMo 2.6 Flash Free: Alta velocidade da Xiaomi (1.73s TTFT).";
+    if(m.id==="deepseek-v4-flash:free")return"DeepSeek V4 Flash Free: Rápido e capaz para código e agentes.";
+  }
   if(m.id==="deepseek-v4-pro")return"Architecture, difficult debugging and long agentic work.";
   if(m.provider==="openai"){
     if(m.id==="gpt-5.6-sol")return"Best quality for complex engineering and critical work.";
@@ -47,6 +54,8 @@ function providerGroups(cfg){
   return [...groups.entries()].filter(([,models])=>models.length).map(([id,models])=>({id,models,meta:PROVIDERS[id]||{label:id,icon:"◇",description:"Provider configured in BLACKCORE."}}));
 }
 function providerSubtitle(id){
+  if(id==="tokenharbor")return"Token Harbor API · 8 chaves em rotação · Dual Fast Pool com Qwen, MiMo e DeepSeek.";
+  if(id==="wavespeed")return"WaveSpeed API · Eco Pool resiliente.";
   if(id==="deepseek")return"DeepSeek API · choose Flash or Pro.";
   if(id==="openai")return"OPENAI_API_KEY · official Responses API with native reasoning levels.";
   if(id==="google")return"Up to 8 Google AI Studio keys · seamless context handoff · safe parallel workers · per-key cooldown · Free Pool stays inside Google.";

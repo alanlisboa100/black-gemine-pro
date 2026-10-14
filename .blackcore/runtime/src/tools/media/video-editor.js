@@ -16,7 +16,7 @@ import {listVideoEffectPacks,loadVideoEffectPack,resolveVideoEffectPreset} from 
 const VIDEO_EXTS=new Set([".mp4",".mov",".mkv",".webm",".m4v",".avi",".3gp",".3g2",".mts",".m2ts",".ts"]);
 const AUDIO_EXTS=new Set([".mp3",".m4a",".aac",".wav",".flac",".ogg",".opus"]);
 const AUX_EXTS=new Set([".srt",".vtt",".ass",".ssa",".png",".jpg",".jpeg",".webp"]);
-const TRANSITIONS=new Set(["none","fade","fadeblack","dissolve","softdissolve","wipeleft","wiperight","slideleft","slideright","smoothleft","smoothright","circleopen","zoomin","heart","burst"]);
+const TRANSITIONS=new Set(["none","fade","fadeblack","fadewhite","whiteflash","fadefast","fadeslow","dissolve","softdissolve","wipeleft","wiperight","slideleft","slideright","smoothleft","smoothright","circleopen","circleclose","hblur","pixelize","squeezeh","zoomin","zoomout","heart","burst"]);
 const VIDEO_TIMEOUT_MS=4*60*60*1000;
 const ANALYSIS_TIMEOUT_MS=60*60*1000;
 const BRAND_WATERMARK=path.resolve(path.dirname(fileURLToPath(import.meta.url)),"../../../assets/blackcore-watermark.png");
@@ -43,7 +43,13 @@ function editProfile(a={},info={}){
   if(!width&&!height&&Math.max(Number(video.width)||0,Number(video.height)||0)>2560){const scale=2560/Math.max(Number(video.width)||1,Number(video.height)||1);width=even(Number(video.width)*scale);height=even(Number(video.height)*scale);downscaled=true;}
   if(width&&height&&(width>2560||height>2560)){const scale=2560/Math.max(width,height);width=even(width*scale);height=even(height*scale);downscaled=true;}
   const floor=level==="high"?2200:level==="medium"?1250:750,videoMaxKbps=Math.round(Math.max(floor,sourceVideoKbps*base.bitrateMultiplier));
-  return {...base,preserveSourceAudio,creativeRecut:false,removeSilence:a.removeSilence??!preserveSourceAudio,removeBlackFrames:true,environmentEnhancement:true,brandWatermark:true,watermarkPosition:"bottom-right",watermarkMargin:24,mobileHd:true,maxResolution:"720p",...a,editLevel:level,preserveSourceAudio,...(width&&height?{width,height}:{}),_sceneGap:base.sceneGap,_maxScenes:base.maxScenes,_maxTransitions:base.maxTransitions,_maxCreativeEdits:base.maxCreativeEdits,_creativeGap:base.creativeGap,_insertDuration:base.insertDuration,_motionStrength:base.motion,_punchZoom:base.punchZoom,_environmentSampleFps:base.environmentSampleFps,_maxEnvironmentSamples:base.maxEnvironmentSamples,_environmentStrength:safeNumber(a.environmentStrength,base.environmentStrength,0,1),_crf:base.crf,_preset:base.preset,_audioBitrate:base.audioBitrate,_videoMaxKbps:videoMaxKbps,_watermarkRatio:base.watermarkRatio,_watermarkOpacity:base.watermarkOpacity,_upscaled:upscaled,_downscaled:downscaled};
+  const reqText=String(a.request||"").toLowerCase();
+  const isCapcut=a.style==="capcut"||reqText.includes("capcut")||reqText.includes("tiktok")||reqText.includes("reels");
+  const chosenStyle=a.style||(isCapcut?"capcut":base.style);
+  const chosenColor=a.colorGrade||(isCapcut?"capcut-teal-orange":base.colorGrade);
+  const chosenCaption=a.captionStyle||(isCapcut?"capcut":"clean");
+  const chosenTransDur=a.transitionDuration||(isCapcut?0.24:base.transitionDuration);
+  return {...base,style:chosenStyle,colorGrade:chosenColor,captionStyle:chosenCaption,transitionDuration:chosenTransDur,preserveSourceAudio,creativeRecut:false,removeSilence:a.removeSilence??!preserveSourceAudio,removeBlackFrames:true,environmentEnhancement:true,brandWatermark:true,watermarkPosition:"bottom-right",watermarkMargin:24,mobileHd:true,maxResolution:"720p",...a,style:chosenStyle,colorGrade:chosenColor,captionStyle:chosenCaption,transitionDuration:chosenTransDur,editLevel:level,preserveSourceAudio,...(width&&height?{width,height}:{}),_sceneGap:isCapcut?Math.min(base.sceneGap,4):base.sceneGap,_maxScenes:base.maxScenes,_maxTransitions:base.maxTransitions,_maxCreativeEdits:base.maxCreativeEdits,_creativeGap:base.creativeGap,_insertDuration:base.insertDuration,_motionStrength:base.motion,_punchZoom:isCapcut?Math.max(0.075,base.punchZoom):base.punchZoom,_environmentSampleFps:base.environmentSampleFps,_maxEnvironmentSamples:base.maxEnvironmentSamples,_environmentStrength:safeNumber(a.environmentStrength,base.environmentStrength,0,1),_crf:base.crf,_preset:base.preset,_audioBitrate:base.audioBitrate,_videoMaxKbps:videoMaxKbps,_watermarkRatio:base.watermarkRatio,_watermarkOpacity:base.watermarkOpacity,_upscaled:upscaled,_downscaled:downscaled};
 }
 function expandHome(value=""){
   const s=String(value||"").trim();
@@ -330,7 +336,11 @@ function colorFilter(preset="natural"){
   if(preset==="none")return null;
   if(preset==="cinematic")return "eq=contrast=1.12:saturation=0.95:brightness=-0.012:gamma=1.01,colorbalance=bs=.032:rs=-.018,unsharp=5:5:0.52";
   if(preset==="studio")return "eq=contrast=1.065:saturation=1.075:gamma=1.012,colorbalance=rs=.012:bs=.008,unsharp=5:5:0.4";
-  if(preset==="vibrant")return "eq=contrast=1.06:saturation=1.18:gamma=1.01,unsharp=3:3:0.35";
+  if(preset==="vibrant"||preset==="capcut-vibrant")return "eq=contrast=1.12:saturation=1.28:gamma=1.02,unsharp=5:5:0.5";
+  if(preset==="capcut-teal-orange"||preset==="teal-orange")return "colorbalance=rs=.08:gs=-.02:bs=-.08:rm=-.04:gm=.02:bm=.08:rh=-.02:gh=.02:bh=-.06,eq=contrast=1.14:saturation=1.24:gamma=1.03,unsharp=5:5:0.55";
+  if(preset==="capcut-vintage"||preset==="vintage")return "colorbalance=rs=.05:gs=.02:bs=-.05,eq=contrast=1.06:saturation=0.92:gamma=1.04:brightness=0.01,noise=alls=6:allf=t+u,unsharp=3:3:0.3";
+  if(preset==="capcut-cyberpunk"||preset==="cyberpunk")return "colorbalance=rs=.08:gs=-.06:bs=.12,eq=contrast=1.18:saturation=1.3:gamma=1.02,unsharp=5:5:0.55";
+  if(preset==="capcut-glow"||preset==="glow")return "eq=contrast=1.08:saturation=1.15:gamma=1.04,unsharp=3:3:0.25";
   if(preset==="warm")return "eq=contrast=1.04:saturation=1.07,colorbalance=rs=.04:gs=.012:bs=-.025,unsharp=3:3:0.25";
   if(preset==="cool")return "eq=contrast=1.04:saturation=1.02,colorbalance=rs=-.025:bs=.04,unsharp=3:3:0.25";
   if(preset==="mono")return "hue=s=0,eq=contrast=1.1,unsharp=3:3:0.3";
@@ -353,26 +363,45 @@ function motionFilter(a,index,row,reframe,fps){
   return `zoompan=z='${zoom}':x='${x}':y='ih/2-(ih/zoom/2)':d=1:s=${reframe.width}x${reframe.height}:fps=${fps}`;
 }
 function captionForceStyle(style="clean"){
+  if(style==="capcut")return "FontName=DejaVu Sans,FontSize=24,Bold=1,PrimaryColour=&H0000E5FF,OutlineColour=&H00000000,BorderStyle=1,Outline=3.5,Shadow=2.5,BackColour=&H80000000,Alignment=2,MarginV=90";
+  if(style==="tiktok")return "FontName=DejaVu Sans,FontSize=22,Bold=1,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=3,Outline=3,Shadow=1,BackColour=&H60000000,Alignment=2,MarginV=80";
+  if(style==="karaoke")return "FontName=DejaVu Sans,FontSize=26,Bold=1,PrimaryColour=&H0024FFFF,OutlineColour=&H00000000,BorderStyle=1,Outline=4,Shadow=3,Alignment=2,MarginV=100";
   if(style==="social")return "FontName=DejaVu Sans,FontSize=22,Bold=1,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=3,Outline=2,Shadow=0,Alignment=2,MarginV=70";
   if(style==="cinematic")return "FontName=DejaVu Sans,FontSize=18,Bold=0,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=1,Outline=2,Shadow=1,Alignment=2,MarginV=48";
   return "FontName=DejaVu Sans,FontSize=20,Bold=1,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=1,Outline=2,Shadow=0,Alignment=2,MarginV=54";
 }
 function transitionFor(style="clean",requested="auto",index=0,context={}){
   if(requested==="zoom-face-in-out")return "zoomin";
+  if(requested==="whiteflash")return "fadewhite";
+  if(requested==="zoomout")return "zoomout";
   if(requested!=="auto")return TRANSITIONS.has(requested)?requested:"fade";
   const genre=context.genre||"unknown",strong=Number(context.score)>=0.92&&context.onBeat;
   const genreSets={
-    funk:strong?["burst","zoomin","circleopen","smoothleft"]:["smoothleft","softdissolve","zoomin"],
+    funk:strong?["burst","zoomin","fadewhite","circleopen","smoothleft"]:["smoothleft","softdissolve","zoomin","fadewhite"],
     pagode:strong?["heart","softdissolve","smoothleft"]:["softdissolve","smoothleft","fade"],
     sertanejo:strong?["heart","softdissolve","fade"]:["softdissolve","fade","smoothleft"],
-    pop:strong?["zoomin","burst","heart","smoothleft"]:["smoothleft","softdissolve","zoomin"],
+    pop:strong?["zoomin","fadewhite","burst","pixelize","smoothleft"]:["smoothleft","softdissolve","zoomin","fadefast"],
     unknown:["softdissolve","smoothleft","fade"]
   };
-  const styleSets={social:["smoothleft","softdissolve","zoomin"],cinematic:["softdissolve","fadeblack","fade"],music_video:genreSets[genre]||genreSets.unknown,clean:["softdissolve"]};
+  const styleSets={
+    capcut:strong?["fadewhite","zoomin","pixelize","hblur","smoothleft"]:["fadewhite","zoomin","smoothleft","fadefast","hblur"],
+    social:["smoothleft","softdissolve","zoomin","fadewhite"],
+    cinematic:["softdissolve","fadeblack","fade"],
+    music_video:genreSets[genre]||genreSets.unknown,
+    clean:["softdissolve"]
+  };
   const rows=styleSets[style]||genreSets[genre]||genreSets.unknown;return rows[index%rows.length];
 }
 function transitionFilter(kind,duration,offset){
   const base=`duration=${duration}:offset=${offset}`;
+  if(kind==="whiteflash"||kind==="fadewhite")return `xfade=transition=fadewhite:${base}`;
+  if(kind==="fadefast")return `xfade=transition=fadefast:${base}`;
+  if(kind==="fadeslow")return `xfade=transition=fadeslow:${base}`;
+  if(kind==="hblur")return `xfade=transition=hblur:${base}`;
+  if(kind==="pixelize")return `xfade=transition=pixelize:${base}`;
+  if(kind==="squeezeh")return `xfade=transition=squeezeh:${base}`;
+  if(kind==="circleclose")return `xfade=transition=circleclose:${base}`;
+  if(kind==="zoomout")return `xfade=transition=custom:${base}:expr='if(lte(P\,0.45)\,A*(1-2.2*P)\,B*(2.2*(P-0.45)))'`;
   if(kind==="softdissolve")return `xfade=transition=custom:${base}:expr='A*(1-(P*P*(3-2*P)))+B*(P*P*(3-2*P))'`;
   if(kind==="heart"){
     const u=`((X/W-0.5)/(0.42*max(P\,0.001)))`,v=`((0.55-Y/H)/(0.42*max(P\,0.001)))`,heart=`pow(pow(${u}\,2)+pow(${v}\,2)-1\,3)-pow(${u}\,2)*pow(${v}\,3)`;
@@ -453,8 +482,8 @@ function audioMasterFilter(a={}){
   rows.push("alimiter=limit=0.95");return rows.join(",");
 }
 function timelineGraph(info,segments,a,{musicIndex=null,subtitles=null,watermarkIndex=null}={}){
-  const sourceRows=reduceSegments(segments),initialPlan=Array.isArray(a._transitionPlan)?a._transitionPlan:transitionPlanFor(sourceRows,a,a._musicProfile||{genre:"unknown"},[]),preserveSourceAudio=a.preserveSourceAudio===true&&!!info.audio&&musicIndex===null,locked=preserveSourceAudio?visualSegmentsForAudioLock(sourceRows,initialPlan,info.duration):null,rows=locked?.rows||sourceRows,plan=locked?.plan||initialPlan,fps=safeNumber(a.fps,parseFps(info.video?.avg_frame_rate),12,60),reframe=reframeFilter(a,info),grade=colorFilter(a.colorGrade||((a.style==="cinematic"||a.style==="music_video")?"cinematic":"natural"));
-  const denoise=videoDenoiseFilter(a),filters=(index,row)=>[row.reverse?"reverse,setpts=PTS-STARTPTS":null,`fps=${fps}`,reframe.filter,denoise,motionFilter(a,index,row,reframe,fps),adaptiveEnvironmentFilter(row.environment,a._environmentStrength),grade,"format=yuv420p","settb=AVTB"].filter(Boolean).join(","),graph=[];
+  const sourceRows=reduceSegments(segments),initialPlan=Array.isArray(a._transitionPlan)?a._transitionPlan:transitionPlanFor(sourceRows,a,a._musicProfile||{genre:"unknown"},[]),preserveSourceAudio=a.preserveSourceAudio===true&&!!info.audio&&musicIndex===null,locked=preserveSourceAudio?visualSegmentsForAudioLock(sourceRows,initialPlan,info.duration):null,rows=locked?.rows||sourceRows,plan=locked?.plan||initialPlan,fps=safeNumber(a.fps,parseFps(info.video?.avg_frame_rate),12,60),reframe=reframeFilter(a,info),grade=colorFilter(a.colorGrade||((a.style==="cinematic"||a.style==="music_video")?"cinematic":a.style==="capcut"?"capcut-teal-orange":"natural"));
+  const denoise=videoDenoiseFilter(a),filters=(index,row)=>[row.reverse?"reverse,setpts=PTS-STARTPTS":null,`fps=${fps}`,reframe.filter,denoise,motionFilter(a,index,row,reframe,fps),adaptiveEnvironmentFilter(row.environment,a._environmentStrength),grade,(row.punchIn&&a.style==="capcut"?"eq=brightness='if(lt(t,0.18),0.4*(1-t/0.18),0)'":null),"format=yuv420p","settb=AVTB"].filter(Boolean).join(","),graph=[];
   rows.forEach((row,index)=>{
     if(reframe.mode==="blur"){
       graph.push(`[0:v]trim=start=${row.start}:end=${row.end},setpts=PTS-STARTPTS,fps=${fps},split=2[bgraw${index}][fgraw${index}]`);
@@ -583,7 +612,7 @@ async function inspectVideoAiCapabilities(ctx,info){
   };
 }
 
-const ACTIONS=["list_media","list_effects","inspect","analyze","detect_silence","detect_scenes","detect_black","detect_beats","trim","timeline","smart_cut","auto_edit","apply_overlay_pack","regional_edit","concat","montage","resize","auto_reframe","crop","rotate","speed","volume","mute","fade","add_music","normalize_audio","denoise","color_grade","stabilize","transcribe","burn_subtitles","overlay_text","watermark","compress","extract_audio","thumbnail"];
+const ACTIONS=["list_media","list_effects","inspect","analyze","detect_silence","detect_scenes","detect_black","detect_beats","trim","timeline","smart_cut","auto_edit","speed_curve","freeze_frame","shake","flash","rgb_split","blur_in","apply_overlay_pack","regional_edit","concat","montage","resize","auto_reframe","crop","rotate","speed","volume","mute","fade","add_music","normalize_audio","denoise","color_grade","stabilize","transcribe","burn_subtitles","overlay_text","watermark","compress","extract_audio","thumbnail"];
 
 export const videoEditorTool=defineTool({
   name:"video_editor",
@@ -599,11 +628,12 @@ export const videoEditorTool=defineTool({
       segments:{type:"array",minItems:1,maxItems:120,items:{type:"object",additionalProperties:false,properties:{start:{type:["number","string"]},end:{type:["number","string"]}},required:["start","end"]}},
       width:{type:"integer",minimum:2,maximum:16384},height:{type:"integer",minimum:2,maximum:16384},x:{type:"integer",minimum:0,maximum:16384},y:{type:"integer",minimum:0,maximum:16384},fps:{type:"number",minimum:12,maximum:60},
       degrees:{type:"integer",enum:[90,180,270]},rate:{type:"number",minimum:0.125,maximum:8},gain:{type:"number",minimum:0,maximum:8},
-      editLevel:{type:"string",enum:["basic","medium","high"]},fadeIn:{type:"number",minimum:0,maximum:120},fadeOut:{type:"number",minimum:0,maximum:120},transition:{type:"string",enum:["auto",...TRANSITIONS,"zoom-face-in-out"]},transitionDuration:{type:"number",minimum:0.08,maximum:2},transitionDurations:{type:"array",maxItems:120,items:{type:"number",minimum:0.08,maximum:2}},style:{type:"string",enum:["clean","dynamic","professional","cinematic","social","music_video","podcast"]},
+      curvePreset:{type:"string",enum:["hero","bullet","flash_in","flash_out","montage","jump_cut"]},freezeDuration:{type:"number",minimum:0.1,maximum:10},freezePunch:{type:"boolean"},shakeIntensity:{type:"number",minimum:1,maximum:20},shakeFrequency:{type:"number",minimum:1,maximum:60},flashColor:{type:"string",maxLength:40},strobe:{type:"boolean"},strobeInterval:{type:"number",minimum:0.05,maximum:10},rgbSplitOffset:{type:"integer",minimum:1,maximum:40},blurDuration:{type:"number",minimum:0.1,maximum:10},
+      editLevel:{type:"string",enum:["basic","medium","high"]},fadeIn:{type:"number",minimum:0,maximum:120},fadeOut:{type:"number",minimum:0,maximum:120},transition:{type:"string",enum:["auto",...TRANSITIONS,"zoom-face-in-out"]},transitionDuration:{type:"number",minimum:0.08,maximum:2},transitionDurations:{type:"array",maxItems:120,items:{type:"number",minimum:0.08,maximum:2}},style:{type:"string",enum:["clean","dynamic","professional","cinematic","social","music_video","podcast","capcut"]},
       music:{type:"string",maxLength:4096},musicVolume:{type:"number",minimum:0,maximum:4},originalVolume:{type:"number",minimum:0,maximum:4},ducking:{type:"boolean"},syncToBeats:{type:"boolean"},musicGenre:{type:"string",enum:["auto","funk","pagode","sertanejo","pop","other"]},preserveSourceAudio:{type:"boolean"},creativeRecut:{type:"boolean"},masterAudio:{type:"boolean"},denoiseAudio:{type:"boolean"},denoiseVideo:{type:"boolean"},targetLufs:{type:"number",minimum:-24,maximum:-9},
       removeSilence:{type:"boolean"},removeBlackFrames:{type:"boolean"},editMethod:{type:"string",enum:["auto","audio","motion","audio-or-motion","audio-and-motion","scene"]},silencePadding:{type:"number",minimum:0,maximum:2},minSegment:{type:"number",minimum:0.2,maximum:30},silenceDb:{type:"number",minimum:-80,maximum:-5},silenceDuration:{type:"number",minimum:0.1,maximum:30},motionThreshold:{type:"number",minimum:0,maximum:1},motionlessDuration:{type:"number",minimum:0.1,maximum:30},sceneThreshold:{type:"number",minimum:0.01,maximum:1},blackThreshold:{type:"number",minimum:0.5,maximum:1},blackDuration:{type:"number",minimum:0.1,maximum:30},analysisDepth:{type:"string",enum:["quick","full"]},
-      aspectRatio:{type:"string",enum:["original","vertical","square","landscape"]},reframeMode:{type:"string",enum:["crop","fit","blur"]},upscale:{type:"boolean"},mobileHd:{type:"boolean"},maxResolution:{type:"string",enum:["720p","1080p","2k"]},reverseMoments:{type:"boolean"},maxReverseMoments:{type:"integer",minimum:1,maximum:3},zoomPreset:{type:"string",enum:["none","face-in-out","face-punch","subtle-push","return-zoom"]},focusX:{type:"number",minimum:0,maximum:1},focusY:{type:"number",minimum:0,maximum:1},zoomStrength:{type:"number",minimum:0.01,maximum:0.25},colorGrade:{type:"string",enum:["none","natural","studio","cinematic","vibrant","warm","cool","mono"]},environmentEnhancement:{type:"boolean"},environmentStrength:{type:"number",minimum:0,maximum:1},
-      subtitles:{type:"string",maxLength:4096},autoCaptions:{type:"boolean"},subtitleFormat:{type:"string",enum:["srt","vtt","txt"]},captionStyle:{type:"string",enum:["clean","social","cinematic"]},language:{type:"string",maxLength:20},whisperModel:{type:"string",maxLength:4096},
+      aspectRatio:{type:"string",enum:["original","vertical","square","landscape"]},reframeMode:{type:"string",enum:["crop","fit","blur"]},upscale:{type:"boolean"},mobileHd:{type:"boolean"},maxResolution:{type:"string",enum:["720p","1080p","2k"]},reverseMoments:{type:"boolean"},maxReverseMoments:{type:"integer",minimum:1,maximum:3},zoomPreset:{type:"string",enum:["none","face-in-out","face-punch","subtle-push","return-zoom"]},focusX:{type:"number",minimum:0,maximum:1},focusY:{type:"number",minimum:0,maximum:1},zoomStrength:{type:"number",minimum:0.01,maximum:0.25},colorGrade:{type:"string",enum:["none","natural","studio","cinematic","vibrant","warm","cool","mono","capcut-vibrant","capcut-teal-orange","capcut-vintage","capcut-cyberpunk","capcut-glow"]},environmentEnhancement:{type:"boolean"},environmentStrength:{type:"number",minimum:0,maximum:1},
+      subtitles:{type:"string",maxLength:4096},autoCaptions:{type:"boolean"},subtitleFormat:{type:"string",enum:["srt","vtt","txt"]},captionStyle:{type:"string",enum:["clean","social","cinematic","capcut","tiktok","karaoke"]},language:{type:"string",maxLength:20},whisperModel:{type:"string",maxLength:4096},
       text:{type:"string",maxLength:1000},fontSize:{type:"integer",minimum:8,maximum:300},fontColor:{type:"string",maxLength:40},box:{type:"boolean"},position:{type:"string",enum:["top","center","bottom","top-left","top-right","bottom-left","bottom-right"]},
       overlay:{type:"string",maxLength:4096},overlayWidth:{type:"integer",minimum:8,maximum:4096},opacity:{type:"number",minimum:0.05,maximum:1},margin:{type:"integer",minimum:0,maximum:1000},effectPack:{type:"string",maxLength:120},overlayPack:{type:"boolean"},overlayPresets:{type:"array",maxItems:30,items:{type:"string",maxLength:100}},overlayCount:{type:"integer",minimum:1,maximum:30},overlayDuration:{type:"number",minimum:0.12,maximum:4},overlayOpacity:{type:"number",minimum:0.05,maximum:1},overlays:{type:"array",maxItems:30,items:{type:"object",additionalProperties:false,properties:{preset:{type:"string",maxLength:100},id:{type:"string",maxLength:100},start:{type:["number","string"]},time:{type:["number","string"]},duration:{type:["number","string"]},length:{type:["number","string"]},opacity:{type:"number",minimum:0.05,maximum:1},scale:{type:"number",minimum:0.5,maximum:1.6}}}},brandWatermark:{type:"boolean"},watermarkPosition:{type:"string",enum:["top-left","top-right","bottom-left","bottom-right","center"]},watermarkMargin:{type:"integer",minimum:0,maximum:1000},
       quality:{type:"string",enum:["high","medium","low"]},codec:{type:"string",enum:["libx264","libx265"]},preset:{type:"string",enum:["ultrafast","superfast","veryfast","faster","fast","medium","slow"]},audioBitrate:{type:"string",enum:["96k","128k","160k","192k","256k","320k"]},time:{type:["number","string"]},
@@ -757,6 +787,131 @@ export const videoEditorTool=defineTool({
       const f=a.degrees===90?"transpose=1":a.degrees===270?"transpose=2":"hflip,vflip";args=["-i",input,"-vf",f,...enc];changes=[`rotated the image ${a.degrees} degrees`];
     }else if(a.action==="speed"){
       const rate=Number(a.rate||1);if(info.audio)args=["-i",input,"-filter_complex",`[0:v]setpts=PTS/${rate}[v];[0:a]${atempoChain(rate)}[a]`,"-map","[v]","-map","[a]",...enc];else args=["-i",input,"-vf",`setpts=PTS/${rate}`,...enc];changes=[`changed playback speed to ${rate}× while preserving audio pitch`];
+    }else if(a.action==="speed_curve"){
+      const preset=String(a.curvePreset||"hero").toLowerCase();
+      const dur=info.duration;
+      if(dur<0.4)throw new Error("video is too short for a speed curve");
+      const curves={
+        hero: [
+          {start:0, end:0.25, rate:1.0},
+          {start:0.25, end:0.48, rate:2.5},
+          {start:0.48, end:0.75, rate:0.4},
+          {start:0.75, end:1.0, rate:1.2}
+        ],
+        bullet: [
+          {start:0, end:0.20, rate:1.0},
+          {start:0.20, end:0.40, rate:3.0},
+          {start:0.40, end:0.70, rate:0.35},
+          {start:0.70, end:1.0, rate:1.5}
+        ],
+        flash_in: [
+          {start:0, end:0.30, rate:3.2},
+          {start:0.30, end:1.0, rate:1.0}
+        ],
+        flash_out: [
+          {start:0, end:0.70, rate:1.0},
+          {start:0.70, end:1.0, rate:3.2}
+        ],
+        montage: [
+          {start:0, end:0.25, rate:2.2},
+          {start:0.25, end:0.50, rate:0.5},
+          {start:0.50, end:0.75, rate:2.2},
+          {start:0.75, end:1.0, rate:0.5}
+        ],
+        jump_cut: [
+          {start:0, end:0.33, rate:1.8},
+          {start:0.33, end:0.66, rate:0.6},
+          {start:0.66, end:1.0, rate:2.0}
+        ]
+      };
+      const stages=curves[preset]||curves.hero;
+      const graph=[];
+      const vInputs=[];
+      const aInputs=[];
+      stages.forEach((stg,idx)=>{
+        const t0=(stg.start*dur).toFixed(3);
+        const t1=(stg.end*dur).toFixed(3);
+        const r=stg.rate;
+        graph.push(`[0:v]trim=start=${t0}:end=${t1},setpts=PTS-STARTPTS,setpts=PTS/${r}[cv${idx}]`);
+        vInputs.push(`[cv${idx}]`);
+        if(info.audio){
+          graph.push(`[0:a]atrim=start=${t0}:end=${t1},asetpts=PTS-STARTPTS,${atempoChain(r)}[ca${idx}]`);
+          aInputs.push(`[ca${idx}]`);
+        }
+      });
+      graph.push(`${vInputs.join("")}concat=n=${stages.length}:v=1:a=0[v]`);
+      if(info.audio)graph.push(`${aInputs.join("")}concat=n=${stages.length}:v=0:a=1[a]`);
+      args=["-i",input,"-filter_complex",graph.join(";"),"-map","[v]"];
+      if(info.audio)args.push("-map","[a]");
+      args.push(...enc);
+      changes=[`applied CapCut '${preset}' speed curve with dynamic speed ramping and synchronized audio pitch`];
+    }else if(a.action==="freeze_frame"){
+      const freezeAt=safeNumber(sec(a.time),info.duration/2,0.05,Math.max(0.1,info.duration-0.05));
+      const freezeLen=safeNumber(a.freezeDuration,0.8,0.1,10);
+      const punch=a.freezePunch!==false;
+      const fps=safeNumber(a.fps,parseFps(info.video?.avg_frame_rate),12,60);
+      const w=even(info.video?.width||1280),h=even(info.video?.height||720);
+      const graph=[];
+      graph.push(`[0:v]trim=start=0:end=${freezeAt.toFixed(3)},setpts=PTS-STARTPTS[f_pre]`);
+      const punchFilter=punch?`,zoompan=z='1.08':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=${w}x${h}:fps=${fps}`:"";
+      graph.push(`[0:v]trim=start=${freezeAt.toFixed(3)}:end=${(freezeAt+0.04).toFixed(3)},setpts=PTS-STARTPTS,loop=loop=${Math.round(freezeLen*fps)}:size=1:start=0,trim=duration=${freezeLen.toFixed(3)}${punchFilter}[f_still]`);
+      graph.push(`[0:v]trim=start=${freezeAt.toFixed(3)}:end=${info.duration.toFixed(3)},setpts=PTS-STARTPTS[f_post]`);
+      graph.push(`[f_pre][f_still][f_post]concat=n=3:v=1:a=0[v]`);
+      if(info.audio){
+        graph.push(`[0:a]atrim=start=0:end=${freezeAt.toFixed(3)},asetpts=PTS-STARTPTS[fa_pre]`);
+        graph.push(`anullsrc=r=48000:cl=stereo,atrim=duration=${freezeLen.toFixed(3)},asetpts=PTS-STARTPTS[fa_still]`);
+        graph.push(`[0:a]atrim=start=${freezeAt.toFixed(3)}:end=${info.duration.toFixed(3)},asetpts=PTS-STARTPTS[fa_post]`);
+        graph.push(`[fa_pre][fa_still][fa_post]concat=n=3:v=0:a=1[a]`);
+      }
+      args=["-i",input,"-filter_complex",graph.join(";"),"-map","[v]"];
+      if(info.audio)args.push("-map","[a]");
+      args.push(...enc);
+      changes=[`froze keyframe at ${freezeAt.toFixed(2)}s for ${freezeLen.toFixed(2)}s with ${punch?"CapCut action punch zoom":"clean hold"}`];
+    }else if(a.action==="shake"){
+      const intensity=safeNumber(a.shakeIntensity,4,1,20);
+      const freq=safeNumber(a.shakeFrequency,18,2,60);
+      const pad=Math.max(4,Math.round(intensity*3));
+      const st=a.start!==undefined?sec(a.start):0;
+      const d=a.duration!==undefined?sec(a.duration):(info.duration-st);
+      const endT=Math.min(info.duration,st+d);
+      const shakeExpr=`crop=in_w-${pad*2}:in_h-${pad*2}:${pad}+${pad}*sin(2*PI*t*${freq}):${pad}+${pad}*cos(2*PI*t*${Math.round(freq*1.27)}),scale=in_w:in_h:flags=lanczos`;
+      if(st>0||endT<info.duration-0.05){
+        args=["-i",input,"-filter_complex",`[0:v]split=2[orig][shk];[shk]${shakeExpr}[shk_out];[orig][shk_out]overlay=enable='between(t,${st.toFixed(3)},${endT.toFixed(3)})'[v]`,"-map","[v]"];
+      }else{
+        args=["-i",input,"-vf",shakeExpr];
+      }
+      if(info.audio)args.push("-map","0:a:0?","-c:a","copy");
+      args.push(...encodeArgs(a,null,{copyAudio:!!info.audio}));
+      changes=[`added CapCut camera impact shake (intensity ${intensity}, ${freq}Hz)`];
+    }else if(a.action==="flash"){
+      const d=safeNumber(a.duration,0.22,0.05,5);
+      const st=safeNumber(sec(a.start??0),0,0,Math.max(0,info.duration-0.05));
+      let filter;
+      if(a.strobe){
+        const interval=safeNumber(a.strobeInterval,0.5,0.1,5);
+        filter=`eq=brightness='if(lt(mod(t,${interval.toFixed(3)}),${d.toFixed(3)}),0.65*(1-mod(t,${interval.toFixed(3)})/${d.toFixed(3)}),0)'`;
+      }else{
+        filter=`eq=brightness='if(between(t,${st.toFixed(3)},${(st+d).toFixed(3)}),0.7*(1-(t-${st.toFixed(3)})/${d.toFixed(3)}),0)'`;
+      }
+      args=["-i",input,"-vf",filter];
+      if(info.audio)args.push("-c:a","copy");
+      args.push(...encodeArgs(a,null,{copyAudio:!!info.audio}));
+      changes=[a.strobe?`added CapCut rhythmic strobe white flash every ${safeNumber(a.strobeInterval,0.5).toFixed(2)}s`:`added CapCut white flash transition effect at ${st.toFixed(2)}s (${d.toFixed(2)}s duration)`];
+    }else if(a.action==="rgb_split"){
+      const offset=Math.round(safeNumber(a.rgbSplitOffset,8,1,40));
+      const graph=`[0:v]split=3[r][g][b];[r]lutrgb=g=0:b=0,crop=iw-${offset}:ih:0:0,pad=iw+${offset}:ih:${offset}:0:color=black[r_shifted];[g]lutrgb=r=0:b=0[g_base];[b]lutrgb=r=0:g=0,crop=iw-${offset}:ih:${offset}:0,pad=iw+${offset}:ih:0:0:color=black[b_shifted];[r_shifted][g_base]blend=all_mode=addition[rg];[rg][b_shifted]blend=all_mode=addition[v]`;
+      args=["-i",input,"-filter_complex",graph,"-map","[v]"];
+      if(info.audio)args.push("-map","0:a:0?","-c:a","copy");
+      args.push(...encodeArgs(a,null,{copyAudio:!!info.audio}));
+      changes=[`applied CapCut TikTok chromatic aberration / RGB split glitch (${offset}px)`];
+    }else if(a.action==="blur_in"){
+      const d=safeNumber(a.duration||a.blurDuration,0.85,0.1,10);
+      const radius=Math.round(safeNumber(a.blurRadius,24,2,80));
+      const graph=`[0:v]split=2[orig][blur];[blur]boxblur=${radius}:2,format=rgba,fade=t=out:st=0:d=${d.toFixed(3)}:alpha=1[blur_faded];[orig][blur_faded]overlay=0:0[v]`;
+      args=["-i",input,"-filter_complex",graph,"-map","[v]"];
+      if(info.audio)args.push("-map","0:a:0?","-c:a","copy");
+      args.push(...encodeArgs(a,null,{copyAudio:!!info.audio}));
+      changes=[`applied CapCut cinematic blur-in intro (${radius}px blur fading over ${d.toFixed(2)}s)`];
     }else if(a.action==="volume"){
       if(!info.audio)throw new Error("input has no audio stream");args=["-i",input,"-c:v","copy","-af",`volume=${Number(a.gain??1)}`,"-c:a","aac","-b:a",a.audioBitrate||"160k"];changes=[`set original audio gain to ${Number(a.gain??1)}×`];
     }else if(a.action==="mute"){args=["-i",input,"-c:v","copy","-an"];changes=["removed the audio track"];}
@@ -782,8 +937,8 @@ export const videoEditorTool=defineTool({
     else if(a.action==="extract_audio"){args=["-i",input,"-vn","-c:a",path.extname(output).toLowerCase()===".mp3"?"libmp3lame":"aac","-b:a",a.audioBitrate||"192k"];changes=["extracted the full audio track"];}
     else if(a.action==="thumbnail"){args=["-ss",timeArg(a.time??Math.min(1,Math.max(0,info.duration/3))),"-i",input,"-frames:v","1","-q:v","2"];changes=["captured a high-quality thumbnail from the selected moment"];}
     else throw new Error(`unsupported video editor action: ${a.action}`);
-    const progressStage={add_music:"mixing",burn_subtitles:"captions",stabilize:"stabilizing"}[a.action]||"rendering";
-    await runEdit(ctx,args,output,VIDEO_TIMEOUT_MS,{stage:progressStage,from:12,to:96,duration:a.action==="thumbnail"?0:info.duration,detail:{add_music:"balancing voice and music",burn_subtitles:"styling and burning captions",normalize_audio:"mastering loudness and peaks",denoise:"cleaning picture and sound",color_grade:"applying the selected color look"}[a.action]||"processing picture and sound"});
+    const progressStage={add_music:"mixing",burn_subtitles:"captions",stabilize:"stabilizing",speed_curve:"rendering",freeze_frame:"cutting",shake:"effects",flash:"effects",rgb_split:"effects",blur_in:"effects"}[a.action]||"rendering";
+    await runEdit(ctx,args,output,VIDEO_TIMEOUT_MS,{stage:progressStage,from:12,to:96,duration:a.action==="thumbnail"?0:info.duration,detail:{add_music:"balancing voice and music",burn_subtitles:"styling and burning captions",normalize_audio:"mastering loudness and peaks",denoise:"cleaning picture and sound",color_grade:"applying the selected color look",speed_curve:"building dynamic speed curve ramping",freeze_frame:"creating action keyframe freeze and punch",shake:"applying camera shake and impact jitter",flash:"generating white flash impact strobe",rgb_split:"rendering chromatic aberration glitch",blur_in:"rendering intro blur-in transition"}[a.action]||"processing picture and sound"});
     reportVideoProgress(ctx,{stage:"verifying",percent:98,detail:"checking output file"});
     const finalInfo=(a.action!=="extract_audio"&&a.action!=="thumbnail")?await probe(ctx,output).catch(()=>null):null;
     reportVideoProgress(ctx,{stage:"verifying",percent:100,detail:"output ready"});

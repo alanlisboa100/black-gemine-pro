@@ -2,6 +2,7 @@ const TARGETS=[
   {id:"eyes",scope:"detail",terms:["olho","olhos","eye","eyes","iris","irises","pupila","pupilas"]},
   {id:"window",scope:"detail",terms:["janela","janelas","window","windows","vidro da janela","window glass"]},
   {id:"face",scope:"detail",terms:["rosto","face","facial","pele do rosto","skin on the face"]},
+  {id:"skin",scope:"detail",terms:["pele","skin","tons de pele","skin tone","tom de pele","complexao","complexão"]},
   {id:"hair",scope:"detail",terms:["cabelo","cabelos","hair"]},
   {id:"clothing",scope:"detail",terms:["roupa","roupas","camisa","camiseta","vestido","casaco","calca","short","clothes","clothing","shirt","dress","jacket","pants"]},
   {id:"sky",scope:"detail",terms:["ceu","sky"]},
@@ -50,7 +51,7 @@ export function preparePhotoRegionalArgs(args={}){
   const selectorRequested=Boolean(regionPrompt||hasShapes(args)||explicitTarget),localized=detected.localized||selectorRequested||(explicitScope&&args.editScope&&args.editScope!=="full");
   if(localized&&explicitScope&&args.editScope==="full")throw new Error(`localized photo edit blocked: '${target||regionPrompt||"selected area"}' cannot use editScope=full; use detail/subject/background/mask with a real selection`);
   let editScope=args.editScope||"full";
-  if(localized&&editScope==="full")editScope=target==="background"?"background":target==="subject"?"subject":"detail";
+  if(localized&&editScope==="full")editScope=target==="background"?"background":target==="subject"?"subject":target==="skin"?"skin":"detail";
   if((Array.isArray(args.regionBoxes)&&args.regionBoxes.length)||(Array.isArray(args.regionPolygons)&&args.regionPolygons.length))editScope="detail";
   const prepared={...args,editScope,...(regionPrompt?{regionPrompt}:{}),...(target?{regionTarget:target}:{})};
   if(target==="window"&&prepared.action==="auto_edit")Object.assign(prepared,{editLevel:"basic",visualStyle:"natural",strength:Math.min(Number(prepared.strength??0.35),0.45),enhanceColor:false,enhanceDetails:false,denoise:false});

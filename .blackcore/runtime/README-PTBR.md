@@ -364,7 +364,7 @@ Exemplos:
 
 - DeepSeek → V4 Flash / V4 Pro → Off / High / Max
 - OpenAI → GPT-5.6 Sol / Terra / Luna → None / Low / Medium / High / XHigh / Max
-- Google AI Studio → catálogo gratuito curado + Google Free Pool → até quatro slots `GEMINI_API_KEY` ... `GEMINI_API_KEY_4`, com failover Google→Google e cooldown por chave/modelo
+- Google AI Studio → catálogo gratuito curado + Google Free Pool → até oito slots `GEMINI_API_KEY` ... `GEMINI_API_KEY_8`, com failover Google→Google e cooldown por chave/modelo
 
 O menu abre numa tela temporária do terminal e volta para a conversa quando você confirma ou aperta Esc.
 

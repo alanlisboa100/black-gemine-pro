@@ -1,3 +1,10 @@
+# 3.8.1 Google key handoff tuning
+
+- Expanded the Google AI Studio credential pool from four to eight slots (`GEMINI_API_KEY` through `GEMINI_API_KEY_8`) across defaults, login, setup, help and model-picker surfaces.
+- Removed full-response buffering during healthy multi-key streaming. Silent quota/auth/server failures still fail over before output, while a stream that already became visible is never replayed on another key.
+- Detect Google `RetryInfo.retryDelay` hints and daily-quota errors so exhausted keys stay out of rotation for the appropriate cooldown instead of being retried every minute.
+- Cached Pacific-day formatters and the in-process secrets map to reduce hot-path key-selection overhead, especially on Termux.
+
 # 3.7.22
 
 - Added `photo_editor list_effects` and seven deterministic local photo finishes: clean natural, cinematic, BLACKCORE Dark, warm vintage, Social Pop, Mono Noir and Studio Neutral.

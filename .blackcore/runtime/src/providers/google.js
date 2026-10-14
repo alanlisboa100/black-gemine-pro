@@ -20,10 +20,17 @@ export class GoogleProvider extends OpenAIProvider{
   constructor(cfg,provider,model){
     super(cfg,provider,model);
     this.poolIndex=0;this.poolActiveModel=null;
+    this.poolActiveProvider=provider;
     this.activeKeySlot=googleKeyPreferredSlot(cfg,1);
     this.poolActiveKeySlot=this.activeKeySlot;
   }
-  modelInfo(){if(this.model===POOL_ID&&this.poolActiveModel)return findModel(this.cfg,this.provider,this.poolActiveModel);return super.modelInfo();}
+  modelInfo(){
+    if(this.model===POOL_ID&&this.poolActiveModel){
+      const prov=this.poolActiveProvider||this.provider;
+      return findModel(this.cfg,prov,this.poolActiveModel);
+    }
+    return super.modelInfo();
+  }
   async directChatOnKey(model,opts,cfg,entry){
     const keyed=cfgWithKey(cfg,this.provider,entry.key);
     if(isGemma(model))return chatGemmaNative(keyed,this.provider,model,opts);
@@ -64,8 +71,14 @@ export class GoogleProvider extends OpenAIProvider{
       const model=pool[i],fastCfg={...this.cfg,retry:{...(this.cfg.retry||{}),maxAttempts:1}};
       try{
         const out=await this.keyedChat(model,opts,fastCfg);this.poolIndex=i;this.poolActiveModel=model;
+        this.poolActiveProvider=this.provider;
         return {...out,provider:this.provider,model,pool:true,poolSelected:model,poolKeySlot:out.googleKeySlot};
-      }catch(e){last=e;if(!poolMayAdvance(e)||i===pool.length-1)throw e;this.poolIndex=i+1;this.poolActiveModel=pool[i+1]||null;}
+      }catch(e){
+        last=e;
+        if(!poolMayAdvance(e))throw e;
+        if(i===pool.length-1)break;
+        this.poolIndex=i+1;this.poolActiveModel=pool[i+1]||null;
+      }
     }
     throw last||new Error("Google Free Pool exhausted");
   }
