@@ -1,5 +1,5 @@
 import readline from "node:readline";
-import {motionEnabled,motionElapsed} from "./motion.js";
+import {motionEnabled,motionElapsed,toolGlyph} from "./motion.js";
 import {PassThrough} from "node:stream";
 import {c,esc} from "./ansi.js";
 import {truncateToWidth,visibleWidth,humanDuration,wrapAnsiToWidth} from "../utils/text.js";
@@ -159,15 +159,18 @@ export class FixedComposer{
   connectionLine(){const queued=this.controller.queue.length,mode=this.spec.mode||"ACT",connection=this.spec.connection||"READY",tools=Number(this.spec.tools)||0,view=this.viewState(),prefix=connection!=="READY"?`${connection} · `:"",position=this.scrollOffset?`VIEW ${view.start+1}-${view.end}/${view.lines.length}${this.unreadLines?` · +${this.unreadLines} new`:""}`:"VIEW LATEST";return `${prefix}${mode}${tools?` · ${tools} TOOLS`:""}${queued?` · QUEUE ${queued}`:""} · ${position}`;}
   phaseLine(){
     const elapsed=motionElapsed(this.started),kind=this.phase.kind,label=this.phase.label,detail=this.phase.detail?`${DIM} · ${this.phase.detail}${RESET}`:"";
-    if(kind==="inspect")return `${CYAN}${THINK[this.tick%THINK.length]} SCAN${RESET}   ${FG}${label||"mapping project"}${RESET}${detail} ${DIM}· ${elapsed}${RESET}`;
-    if(kind==="plan")return `${MAGENTA}◇ PLAN${RESET}   ${FG}${label||"planning changes"}${RESET}${detail} ${DIM}· ${elapsed}${RESET}`;
-    if(kind==="execute")return `${CYAN}${TOOLS[this.tick%TOOLS.length]} BUILD${RESET}  ${FG}${label||"applying changes"}${RESET}${detail} ${DIM}· ${elapsed}${RESET}`;
-    if(kind==="verify")return `${GREEN}✓ CHECK${RESET}  ${FG}${label||"running quality gate"}${RESET}${detail} ${DIM}· ${elapsed}${RESET}`;
-    if(kind==="review")return `${MAGENTA}◇ REVIEW${RESET} ${FG}${label||"reviewing changes"}${RESET}${detail} ${DIM}· ${elapsed}${RESET}`;
-    if(kind==="report")return `${CYAN}◆ REPORT${RESET} ${FG}${label||"preparing handoff"}${RESET}${detail} ${DIM}· ${elapsed}${RESET}`;
+    const glyph=toolGlyph(label);
+    const spinColors=[CYAN,MAGENTA,GREEN,YELLOW];
+    const spinCol=spinColors[this.tick%spinColors.length];
+    if(kind==="inspect")return `${CYAN}${THINK[this.tick%THINK.length]} SCAN${RESET}   ${c(111,"⌕")} ${FG}${label||"mapping project"}${RESET}${detail} ${DIM}· ${elapsed}${RESET}`;
+    if(kind==="plan")return `${MAGENTA}◇ PLAN${RESET}   ${c(111,"☊")} ${FG}${label||"planning changes"}${RESET}${detail} ${DIM}· ${elapsed}${RESET}`;
+    if(kind==="execute")return `${spinCol}${TOOLS[this.tick%TOOLS.length]} BUILD${RESET}  ${c(111,"✎")} ${FG}${label||"applying changes"}${RESET}${detail} ${DIM}· ${elapsed}${RESET}`;
+    if(kind==="verify")return `${GREEN}✓ CHECK${RESET}  ${c(82,"✓")} ${FG}${label||"running quality gate"}${RESET}${detail} ${DIM}· ${elapsed}${RESET}`;
+    if(kind==="review")return `${MAGENTA}◇ REVIEW${RESET} ${c(165,"◈")} ${FG}${label||"reviewing changes"}${RESET}${detail} ${DIM}· ${elapsed}${RESET}`;
+    if(kind==="report")return `${CYAN}◆ REPORT${RESET} ${c(51,"◆")} ${FG}${label||"preparing handoff"}${RESET}${detail} ${DIM}· ${elapsed}${RESET}`;
     if(kind==="thinking")return `${MAGENTA}${THINK[this.tick%THINK.length]} THINK${RESET}  ${FG}${label||"analyzing request"}${RESET}${detail} ${DIM}· ${elapsed}${RESET}`;
-    if(["video","photo","outfit"].includes(kind))return `${MAGENTA}${VIDEO[this.tick%VIDEO.length]} EDIT${RESET}   ${FG}${label||"processing video"}${RESET}${detail} ${DIM}· ${elapsed}${RESET}`;
-    if(kind==="tools")return `${CYAN}${TOOLS[this.tick%TOOLS.length]} RUN${RESET}    ${FG}${label||"tool"}${RESET}${detail} ${DIM}· ${elapsed}${RESET}`;
+    if(["video","photo","outfit"].includes(kind))return `${MAGENTA}${VIDEO[this.tick%VIDEO.length]} EDIT${RESET}   ${c(213,glyph)} ${FG}${label||"processing video"}${RESET}${detail} ${DIM}· ${elapsed}${RESET}`;
+    if(kind==="tools")return `${spinCol}${TOOLS[this.tick%TOOLS.length]} RUN${RESET}    ${c(51,glyph)} ${FG}${label||"tool"}${RESET}${detail} ${DIM}· ${elapsed}${RESET}`;
     if(kind==="waiting")return `${c(220,"◇ WAIT")}   ${FG}${label||"approval"}${RESET}${detail}`;
     if(kind==="done")return `${GREEN}◆ DONE${RESET}   ${FG}${label||"turn complete"}${RESET}${detail}`;
     if(this.working)return `${CYAN}${THINK[this.tick%THINK.length]} WORK${RESET}   ${FG}${label||"preparing"}${RESET}${detail} ${DIM}· ${elapsed}${RESET}`;

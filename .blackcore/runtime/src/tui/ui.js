@@ -232,9 +232,9 @@ export class UI{
     const suffix=effort?` · ${effort}`:"";
     return this.trackSpinner(new Spinner(`${modelName(model)} · thinking${suffix}`,{
       enabled:this.cfg.animation,
-      interval:55,
+      interval:48,
       frames:MOTION.think,
-      colors:[95,201,165,99,95], // subtle purple/magenta cycle
+      colors:[165,201,213,123,51,82,165],
       showElapsed:true
     }));
   }
@@ -250,9 +250,9 @@ export class UI{
     if(this.input?.workComposerActive?.())return this.trackSpinner(this.livePhase("tools",label,`${calls.length} active`));
     return this.trackSpinner(new Spinner(`tools · ${names.join(" · ")}${extra}`,{
       enabled:this.cfg.animation,
-      interval:55,
+      interval:48,
       frames:MOTION.tool,
-      colors:[111,51,81,111],
+      colors:[51,81,123,165,213,198,46],
       showElapsed:true
     }));
   }
@@ -265,7 +265,7 @@ export class UI{
     }
     const resume=this.input?.workComposerActive?.()?(()=>{}):this.suspendMotion();
     const glyph=toolGlyph(name),seq=String(sequence).padStart(2,"0"),label=String(name).replace(/_/g," ").toUpperCase();
-    try{this.write(`  ${c(240,seq)} ${c(111,glyph)} ${c("1;255",label)} ${c(244,"· "+summary)}`);}finally{resume();}
+    try{this.write(`  ${c(240,seq)} ${c(51,glyph)} ${c("1;255",label)} ${c(244,"· "+summary)}`);}finally{resume();}
   }
   toolProgress(name,progress={},{}={}){
     const presentation=toolProgressPresentation(name,progress);

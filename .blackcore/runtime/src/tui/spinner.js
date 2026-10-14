@@ -6,12 +6,12 @@ import {truncateToWidth} from "../utils/text.js";
 export class Spinner {
   constructor(text,{
     enabled=true,interval=100,frames=MOTION.think,color=39,
-    colors=[39,45,51,87,123],showElapsed=true,prefix="",suffix="",
+    colors=[51,45,39,81,117,123,165,213,201,46],showElapsed=true,prefix="",suffix="",
     output=process.stdout,env=process.env
   }={}){
     this.text=text;this.output=output;this.enabled=!!output.isTTY&&env.TERM!=="dumb";
     this.animated=motionEnabled(enabled,env);
-    this.interval=Math.max(80,Number(interval)||100);
+    this.interval=Math.max(40,Number(interval)||80);
     this.frames=frames?.length?frames:MOTION.think;this.color=color;this.colors=colors;
     this.showElapsed=showElapsed;this.prefix=prefix;this.suffix=suffix;
     this.i=0;this.timer=null;this.active=false;this.started=0;this.lastFrame="";
