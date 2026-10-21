@@ -2,6 +2,7 @@
   "name": "blackcore-native",
   "version": "4.0.0",
   "description": "Natural-language-first independent terminal agent with professional photo, video and outfit editing for Termux and Linux",
+  "author": "Alan Lisboa (@MisukiRio) <alanlisboa100@users.noreply.github.com>",
   "type": "module",
   "bin": {
     "blackcore": "./bin/blackcore.js"
